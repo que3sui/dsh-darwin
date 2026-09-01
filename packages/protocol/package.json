@@ -2,6 +2,7 @@
   "name": "@dsh-darwin/protocol",
   "version": "0.1.0",
   "description": "dsh-darwin 自进化协议：ProblemTicket / CandidatePlugin / EvalReceipt / LineageNode 的 schema、域名约定与回归任务格式（含隐藏评分器隔离工具）",
+  "license": "MIT",
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",

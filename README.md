@@ -1,5 +1,10 @@
 # dsh-darwin 🐦‍⬛
 
+[![CI](https://github.com/que3sui/dsh-darwin/actions/workflows/ci.yml/badge.svg)](https://github.com/que3sui/dsh-darwin/actions/workflows/ci.yml)
+[![GitHub release](https://img.shields.io/github/v/release/que3sui/dsh-darwin)](https://github.com/que3sui/dsh-darwin/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+![Node](https://img.shields.io/badge/node-%E2%89%A522-brightgreen)
+
 **中文** | [English](#english)
 
 > 给 [DeepSeek Harness（dsh）](https://github.com/deepseek-ai/deepseek-harness) 的**双插件自进化架构**：一个插件负责"发现问题"（`dsh-sentinel`），一个插件负责"制造修复"（`dsh-forge`），中间用一份可独立发布的协议（`@dsh-darwin/protocol`）传递**问题工单 → 候选 → 评测回执 → 谱系**。
@@ -63,6 +68,22 @@ dsh plugin --profile <你的profile> add ./packages/forge
 3. 调 `darwin_forge` → 取最严重工单合成候选技能（近重复会被拒绝立项）；
 4. 调 `darwin_promote { candidateId, confirm: true }` → 写入项目 `.dsh/skills/`（热重载生效，留快照）;
 5. 不满意？`darwin_rollback { skillName, confirm: true }` → 确定性回滚。
+
+**`darwin_report` 输出示例**（取自 `packages/lab` 的模拟负载，可直接复现）：
+
+```text
+## dsh-sentinel 会话体检（开放工单 9）
+
+### [70] 工具错误簇 · 工具错误簇：bash:ETIMEDOUT 累计失败 8 次
+- id: `tkt-6b34f2a1c9d80e77` · 累计 8 次 · 浪费 ~0 tokens · 最近 seen 2026-09-01T15:00:00.000Z
+  - [retry-0#3] bash 失败 ETIMEDOUT: bash failed with ETIMEDOUT
+  - [retry-1#3] bash 失败 ETIMEDOUT: bash failed with ETIMEDOUT
+
+### [64] 重试环 · 重试环：retry-# 短窗口内重试 16 次
+- id: `tkt-90ab...` · 累计 16 次 · 浪费 ~1800 tokens · …
+```
+
+> 同类缺陷的不同会话会按指纹合并为一张工单（occurrences 累加），`darwin_forge` 只对严重度最高者立项、近重复拒绝重复覆盖。
 
 ## 路线图
 

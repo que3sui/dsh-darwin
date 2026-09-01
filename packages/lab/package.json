@@ -2,6 +2,7 @@
   "name": "@dsh-darwin/lab",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "description": "dsh-darwin 模拟实验：mock DSH 运行时 + 真实 sentinel/forge 插件 + 种子化概率 agent，验证自进化闭环（挖掘查全查准/飞轮改进/评测门对抗/回归回滚/防膨胀）",
   "type": "module",
   "main": "./src/index.ts",
