@@ -30,6 +30,21 @@ importers:
         specifier: ^3.25.76
         version: 3.25.76
 
+  packages/lab:
+    dependencies:
+      '@dsh-darwin/protocol':
+        specifier: workspace:*
+        version: link:../protocol
+      dsh-forge:
+        specifier: workspace:*
+        version: link:../forge
+      dsh-sentinel:
+        specifier: workspace:*
+        version: link:../sentinel
+      zod:
+        specifier: ^3.25.76
+        version: 3.25.76
+
   packages/protocol:
     dependencies:
       zod:

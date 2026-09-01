@@ -18,11 +18,23 @@ export const name = 'dsh-forge'
 
 export const inject = ['storageDomain', 'tools'] as const
 
+export type { ForgeContext, ForgeServices } from './dsh-adapter'
+export { MemoryFilePort, type FilePort } from './promote'
+export { decideGate, DEFAULT_GATE_POLICY, type GatePolicy } from './gate'
+export {
+  DomainCandidateStore,
+  MemoryCandidateStore,
+  type CandidateStore,
+  type SnapshotStore,
+} from './store'
+
 export interface ForgeConfig {
   enabledTiers: Tier[]
   requireConfirm: boolean
   /** 缺省 <projectRoot>/.dsh/skills；当前用相对路径，由 DSH 的工作目录决定 */
   skillsRoot: string
+  /** 文件系统注入点（lab 模拟注入内存实现；缺省 Node 文件系统） */
+  files?: FilePort
 }
 
 export function apply(ctx: ForgeContext, config: Partial<ForgeConfig> = {}): void {
@@ -36,7 +48,7 @@ export function apply(ctx: ForgeContext, config: Partial<ForgeConfig> = {}): voi
     requireConfirm: config.requireConfirm ?? true,
   }
 
-  const files: FilePort = new NodeFilePort()
+  const files: FilePort = config.files ?? new NodeFilePort()
 
   const hooks: ForgeHooks = {
     async promoteSkill(candidateId, confirm, now) {

@@ -31,6 +31,9 @@ export class MemoryFilePort implements FilePort {
   async exists(path: string): Promise<boolean> {
     return this.files.has(path)
   }
+  list(prefix = ''): string[] {
+    return [...this.files.keys()].filter((p) => p.startsWith(prefix))
+  }
 }
 
 export function renderSkillFile(artifact: SkillArtifact): string {

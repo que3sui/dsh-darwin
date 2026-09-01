@@ -14,6 +14,10 @@ export const name = 'dsh-sentinel'
 /** Cordis 依赖声明：fiber 在这些服务就绪前保持 PENDING */
 export const inject = ['sessionQuery', 'storageDomain', 'tools'] as const
 
+export type { SentinelContext, SessionQueryPort, SentinelServices } from './dsh-adapter'
+export type { RawEvent, RawEventType, SessionFrame } from './events'
+export { DomainTicketStore, MemoryTicketStore, type TicketStore } from './store'
+
 export interface SentinelConfig {
   /** P0 默认关闭（手动 darwin_scan 触发）；自动扫描需验证 session/event 订阅 API */
   autoScan: boolean

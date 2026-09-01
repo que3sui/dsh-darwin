@@ -47,7 +47,9 @@
 # 开发
 pnpm install
 pnpm typecheck   # 全包 TypeScript 严格模式
-pnpm test        # 46 个单测（miner/distiller/gate/promote/rollback/protocol）
+pnpm test        # 55 个单测（miner/distiller/gate/promote/rollback/protocol/lab）
+pnpm lab         # 跑 5 组模拟实验并生成 LAB_REPORT.md（E1 挖掘查全查准 / E2 端到端飞轮 /
+                 #   E3 评测门对抗 / E4 回归自动回滚 / E5 防膨胀稳定性）
 
 # 安装到 DSH（在有 DSH 的机器上）
 dsh plugin --profile <你的profile> add ./packages/sentinel
@@ -66,8 +68,20 @@ dsh plugin --profile <你的profile> add ./packages/forge
 
 - **P0（当前）**：sentinel 独立可用（挖掘 + 工单 + 报告）。
 - **P1（当前）**：forge skill/config 级合成 + 人工确认晋级 + 快照回滚。
-- **P2**：接 `ctx.dynamicCordisRunner` 试挂（接口已预留：`src/trial.ts`）+ `ctx.sessions.fork` 冠军/挑战者 A/B + `ctx.workflow` 跑回归任务集 + tokenMeter 成本适应度（评测门已实现：`src/gate.ts`）。
+- **P2**：接 `ctx.dynamicCordisRunner` 试挂（接口已预留：`src/trial.ts`）+ `ctx.sessions.fork` 冠军/挑战者 A/B + `ctx.workflow` 跑回归任务集 + tokenMeter 成本适应度（评测门已实现：`src/gate.ts`，并已在 `packages/lab` 的模拟闭环中验证）。
 - **P3**：code 级合成（默认关闭）、全自动闭环、跨工件统一谱系。
+
+## 模拟实验验证（packages/lab）
+
+mock DSH 运行时 + **真实插件代码** + 种子化概率 agent，验证闭环五环节（结果见 [LAB_REPORT.md](./LAB_REPORT.md)，`pnpm lab` 可复现）：
+
+| 实验 | 验证内容 | 结果 |
+|---|---|---|
+| E1 | 挖掘查全/查准：植入缺陷全检出、干净会话零误报 | ✅ 9 工单，0 污染 |
+| E2 | 端到端飞轮：48 会话 → 挖掘→合成→门→晋级→重放 | ✅ 成功率 47.9%→95.8%，token −37.9% |
+| E3 | 评测门对抗：过拟合/变贵/真改进 | ✅ reject / reject / promote |
+| E4 | 毒技能回归 → 确定性回滚恢复 | ✅ 100%→15.4% 检出，回滚后恢复 100% |
+| E5 | 工单耗尽优雅停止、无重复签名技能 | ✅ |
 
 ## 上游兼容性声明
 
