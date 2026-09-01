@@ -12,6 +12,26 @@
   "scripts": {
     "typecheck": "tsc -p ."
   },
+  "files": [
+    "src"
+  ],
+  "keywords": [
+    "deepseek-harness",
+    "dsh-plugin",
+    "dsh",
+    "self-evolution",
+    "agent",
+    "schema",
+    "protocol"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/que3sui/dsh-darwin.git",
+    "directory": "packages/protocol"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "zod": "^3.25.76"
   }
