@@ -1,0 +1,10 @@
+# dsh-sentinel bundle patch
+# 对应官方 docs/user/develop/basic/publish.md 的 bundle 声明：
+# package.json 的 "dsh": {"bundle": {"patch": "./cordis.patch.yml"}} 指向本文件。
+# `name` 必须与 src/index.ts 导出的 `name` 一致。
+- insert:
+    - id: darwin-sentinel
+      name: dsh-sentinel
+      config:
+        autoScan: false
+        lookbackSessions: 30
