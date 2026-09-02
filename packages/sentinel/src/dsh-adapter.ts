@@ -291,8 +291,12 @@ export async function openOrAttach(
   try {
     return await svc.open(darwinDomainSpec())
   } catch (err) {
-    const msg = String((err as Error)?.message ?? err)
-    if (!msg.includes('already-open')) throw err
+    // VERIFIED：官方 DomainError code='already-open'（连字符），message 为 "is already open"（空格）
+    const e = err as { code?: string; message?: string }
+    const isAlreadyOpen =
+      e?.code === 'already-open' ||
+      String(e?.message ?? '').replace(/-/g, ' ').includes('already open')
+    if (!isAlreadyOpen) throw err
     for (let i = 0; i < 20; i++) {
       await new Promise((r) => setTimeout(r, 100))
       const got = svc.get(DARWIN_DOMAIN)
