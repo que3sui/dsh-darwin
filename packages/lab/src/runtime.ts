@@ -76,20 +76,27 @@ export interface Lab {
   skillNames(): Promise<string[]>
 }
 
-export function bootLab(): Lab {
+export async function bootLab(): Promise<Lab> {
   const tables = new Map<string, KvTableLike<unknown>>()
+  const opened = new Map<string, { table(name: string): KvTableLike<unknown> }>()
+  const tableOf = (name: string): KvTableLike<unknown> => {
+    let t = tables.get(name)
+    if (!t) {
+      t = new MemoryKvStore()
+      tables.set(name, t)
+    }
+    return t
+  }
+  // 模拟官方 DomainFacility 的关键语义（VERIFIED 0.1.1-rc.2）：
+  // open 异步、同名域 get-or-open、句柄带 table(name)
   const domain = {
-    // 忽略 spec 形状（真实后端会校验 DomainSpec；mock 宽松处理）
-    open: (_spec: unknown) => ({
-      table: (name: string): KvTableLike<unknown> => {
-        let t = tables.get(name)
-        if (!t) {
-          t = new MemoryKvStore()
-          tables.set(name, t)
-        }
-        return t
-      },
-    }),
+    open: async (spec: { name: string }) => {
+      if (opened.has(spec.name)) throw new Error(`already-open: ${spec.name}`)
+      const handle = { table: tableOf }
+      opened.set(spec.name, handle)
+      return handle
+    },
+    get: (name: string) => opened.get(name),
   }
 
   const sessionLog = new MockSessionLog()
@@ -105,12 +112,12 @@ export function bootLab(): Lab {
     warn: (...a: unknown[]) => console.warn('[lab:warn]', ...a),
   }
 
-  // 真实插件，原封不动
-  sentinelApply(
+  // 真实插件，原封不动（apply 已异步化）
+  await sentinelApply(
     { sessionQuery: sessionLog, storageDomain: domain, tools: { register }, logger },
     { autoScan: false, lookbackSessions: 500 },
   )
-  forgeApply(
+  await forgeApply(
     { storageDomain: domain, tools: { register }, logger },
     { skillsRoot: SKILLS_ROOT, files, requireConfirm: true },
   )

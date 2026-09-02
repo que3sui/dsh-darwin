@@ -1,8 +1,9 @@
 import {
+  DARWIN_DOMAIN,
   DARWIN_TABLES,
-  DOMAIN_SPEC,
   MemoryKvStore,
   ProblemTicket,
+  darwinDomainSpec,
   type KvTableLike,
 } from './protocol.ts'
 import type { RawEvent, RawEventType, SessionFrame } from './events.ts'
@@ -12,7 +13,12 @@ import { DomainTicketStore, MemoryTicketStore } from './store.ts'
 /**
  * ★ 上游隔离层：本文件是 sentinel 唯一允许接触真实 DSH 服务形状的地方。
  * 上游（deepseek-ai/deepseek-harness）处于开发预览期、保证破坏性变更，
- * 升级时只改这里。所有对官方 API 的引用都标注 TODO(verify：<依据文档>)。
+ * 升级时只改这里。
+ *
+ * VERIFIED 0.1.1-rc.2（实机，2026-09-02）：
+ * - ctx.sessionQuery.filterSessions / filterEvents 存在且为同步方法；
+ * - ctx.storageDomain.open(spec)：异步、必须以方法形式调用（解构会丢 this）、
+ *   tables 项为 { valueSchema: zod }；同名域 already-open，须先 get() 再 open()。
  */
 
 export interface SessionRef {
@@ -31,35 +37,30 @@ export interface SentinelServices {
   store: TicketStore
 }
 
-interface StorageDomainLike {
-  open?: (spec: unknown) => { table(name: string): KvTableLike<unknown> }
+interface StorageDomainService {
+  get(name: string): { table(name: string): KvTableLike<unknown> } | undefined
+  open(spec: unknown): Promise<{ table(name: string): KvTableLike<unknown> }>
 }
 
 /** 结构化最小切面：真实 Cordis Context 可以结构性赋值给它 */
 export interface SentinelContext {
   sessionQuery?: unknown
-  storageDomain?: StorageDomainLike
+  storageDomain?: StorageDomainService
   tools?: { register?: (tool: unknown) => unknown }
   logger?: { info?: (...a: unknown[]) => void; warn?: (...a: unknown[]) => void }
 }
 
-export function wireSentinel(ctx: SentinelContext): SentinelServices {
+export async function wireSentinel(ctx: SentinelContext): Promise<SentinelServices> {
   return {
     query: wireSessionQuery(ctx.sessionQuery),
-    store: wireTicketStore(ctx.storageDomain, ctx.logger),
+    store: await wireTicketStore(ctx.storageDomain, ctx.logger),
   }
 }
 
 /* ------------------------------ 会话查询 --------------------------------- */
 
-/**
- * TODO(verify 0.1.x)：官方 ctx.sessionQuery（docs/subsystems/session-query.md）：
- *   filterSessions(filters: SessionResultFilter[]) → SessionRecord[]
- *   filterEvents(sessionId, filters) → SessionEventSearchDocument[]
- * SessionRecord 预期含 id/cwd/created-at/parent/availability。
- * 检索文档是语义文本索引（不含结构化 usage），因此 loadEvents 走 best-effort
- * 映射；生产级挖掘应改用 SessionLogSnapshot（完整已验证日志）重放。
- */
+/** TODO(verify 0.1.x)：filterEvents 检索文档是语义文本索引（不含结构化 usage）；
+ * 生产级挖掘应改用 SessionLogSnapshot（完整已验证日志）重放。 */
 export function wireSessionQuery(sessionQuery: unknown): SessionQueryPort {
   const sq = sessionQuery as
     | {
@@ -78,11 +79,14 @@ export function wireSessionQuery(sessionQuery: unknown): SessionQueryPort {
   return {
     async listRecentSessions(limit) {
       const records = sq.filterSessions!([{}]) as Array<Record<string, unknown>>
-      const refs = records.map((r) => ({
-        id: String(r.id ?? r.sessionId ?? ''),
-        cwd: typeof r.cwd === 'string' ? r.cwd : undefined,
-        createdAt: typeof r.createdAt === 'number' ? r.createdAt : Number(r.createdAt) || undefined,
-      })).filter((r) => r.id !== '')
+      const refs = records
+        .map((r) => ({
+          id: String(r.id ?? r.sessionId ?? ''),
+          cwd: typeof r.cwd === 'string' ? r.cwd : undefined,
+          createdAt:
+            typeof r.createdAt === 'number' ? r.createdAt : Number(r.createdAt) || undefined,
+        }))
+        .filter((r) => r.id !== '')
       refs.sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0))
       return refs.slice(0, limit)
     },
@@ -129,23 +133,23 @@ function toRawEvent(sessionId: string, d: Record<string, unknown>): RawEvent | u
 
 /* ------------------------------ 工单存储 --------------------------------- */
 
-export function wireTicketStore(storageDomain: StorageDomainLike | undefined, log?: SentinelContext['logger']): TicketStore {
-  if (storageDomain && typeof storageDomain.open === 'function') {
-    try {
-      // TODO(verify 0.1.x)：官方 DomainSpec 需要 defineDomain/domainTable 包装 zod schema，
-      // alpha 期形状可能变化；这里传最小声明，失败则回退内存存储并警告。
-      const domain = storageDomain.open({
-        ...DOMAIN_SPEC,
-        tables: { [DARWIN_TABLES.tickets]: ProblemTicket },
-      })
-      return new DomainTicketStore(DomainTicketStore.tableOf(domain))
-    } catch (err) {
-      log?.warn?.(
-        `[dsh-sentinel] storageDomain.open 失败，回退内存工单库（重启即失）：${String(err)}`,
-      )
+export async function wireTicketStore(
+  storageDomain: StorageDomainService | undefined,
+  log?: SentinelContext['logger'],
+): Promise<TicketStore> {
+  try {
+    if (storageDomain && typeof storageDomain.open === 'function') {
+      // get-or-open：sentinel/forge 谁先启动都行，域 spec 两边完全一致
+      const domain =
+        storageDomain.get(DARWIN_DOMAIN) ?? (await storageDomain.open(darwinDomainSpec()))
+      const table = domain.table(DARWIN_TABLES.tickets) as KvTableLike<ProblemTicket>
+      return new DomainTicketStore(table)
     }
-  } else {
     log?.warn?.('[dsh-sentinel] 无 ctx.storageDomain，使用内存工单库（重启即失）')
+  } catch (err) {
+    log?.warn?.(
+      `[dsh-sentinel] storageDomain 打开失败，回退内存工单库（重启即失）：${String(err)}`,
+    )
   }
   return new MemoryTicketStore()
 }

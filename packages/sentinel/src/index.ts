@@ -24,8 +24,11 @@ export interface SentinelConfig {
   lookbackSessions: number
 }
 
-export function apply(ctx: SentinelContext, config: Partial<SentinelConfig> = {}): void {
-  const { query, store } = wireSentinel(ctx)
+export async function apply(
+  ctx: SentinelContext,
+  config: Partial<SentinelConfig> = {},
+): Promise<void> {
+  const { query, store } = await wireSentinel(ctx)
   const scan = () => scanOnce({ query, store, config })
 
   for (const tool of buildDarwinTools({ scan, store: async () => store })) {

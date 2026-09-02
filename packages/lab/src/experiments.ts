@@ -99,7 +99,7 @@ function interruptedOnlySession(id: string): RawEvent[] {
 }
 
 export async function experiment1Mining(): Promise<Section> {
-  const lab = bootLab()
+  const lab = await bootLab()
   const planted = new Set<string>()
   const clean = new Set<string>()
 
@@ -217,7 +217,7 @@ async function forgeEvaluatePromoteOnce(
 }
 
 export async function experiment2Flywheel(): Promise<Section> {
-  const lab = bootLab()
+  const lab = await bootLab()
   const rng = mulberry32(20260901)
   let clock = 0
   for (const [fam, n] of E2_MIX) {
@@ -325,7 +325,7 @@ export function experiment3GateAdversarial(): Section {
 /* ============================ E4 回归→自动回滚 ============================ */
 
 export async function experiment4Rollback(): Promise<Section> {
-  const lab = bootLab()
+  const lab = await bootLab()
   const famA = FAMILIES['bash-timeout']
   const rng = mulberry32(20260904)
 
@@ -419,7 +419,7 @@ export async function experiment4Rollback(): Promise<Section> {
 /* ============================ E5 防膨胀稳定性 ============================ */
 
 export async function experiment5Stability(): Promise<Section> {
-  const lab = bootLab()
+  const lab = await bootLab()
   const rng = mulberry32(20260905)
   for (let i = 0; i < 12; i++) {
     lab.sessionLog.addSession(runTask(FAMILIES['bash-timeout'], [], rng, `e5-${i}`, T0 + i * 10_000).events)

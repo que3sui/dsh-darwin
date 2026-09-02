@@ -37,8 +37,8 @@ export interface ForgeConfig {
   files?: FilePort
 }
 
-export function apply(ctx: ForgeContext, config: Partial<ForgeConfig> = {}): void {
-  const services: ForgeServices = wireForge(ctx)
+export async function apply(ctx: ForgeContext, config: Partial<ForgeConfig> = {}): Promise<void> {
+  const services: ForgeServices = await wireForge(ctx)
   const deps: ForgeDeps = {
     services,
     synth: {

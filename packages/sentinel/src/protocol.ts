@@ -473,3 +473,25 @@ export class KvCollection<T extends { id: string }> {
     await this.table.delete(id)
   }
 }
+
+/* --------------------------- 域声明（VERIFIED） --------------------------- */
+
+/**
+ * VERIFIED against dsh-storage-domain 0.1.1-rc.2（实机核销 2026-09-02）：
+ * open(spec) 是 async 且必须作为服务方法调用（解构脱离会丢 this）；
+ * tables 项形状为 domainTable(zod) → { valueSchema }；同名域 already-open
+ * 直接抛错——两个插件共用同一份 spec，先 get(name) 再 open。
+ */
+export function darwinDomainSpec() {
+  return {
+    name: DARWIN_DOMAIN,
+    version: 1,
+    tables: {
+      [DARWIN_TABLES.tickets]: { valueSchema: ProblemTicket },
+      [DARWIN_TABLES.candidates]: { valueSchema: CandidatePlugin },
+      [DARWIN_TABLES.evals]: { valueSchema: EvalReceipt },
+      [DARWIN_TABLES.lineage]: { valueSchema: LineageNode },
+      [DARWIN_TABLES.snapshots]: { valueSchema: SkillSnapshot },
+    },
+  }
+}
