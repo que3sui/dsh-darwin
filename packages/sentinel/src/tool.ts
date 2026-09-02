@@ -4,9 +4,17 @@ import type { TicketStore } from './store.ts'
 
 /**
  * 模型可调用的工具。
- * VERIFIED 0.1.1-rc.2（实机）：ctx.tools.register 强制要求
- * output = { schema（JSON Schema）, render（函数）, presentationMeta? }。
+ * VERIFIED 0.1.1-rc.2（实机）：ctx.tools.register 强制 output = { schema, render, presentationMeta? }；
+ * parameters 必须是编译后的完整 JSON Schema（defineTool 的产物形状：
+ * { type: 'object', properties, required? }）——属性映射风格会被 API 拒绝
+ * （schema must be of type "object", got 'type: null'）。
  */
+export interface ToolParametersSchema {
+  type: 'object'
+  properties: Record<string, { type: string; description?: string }>
+  required?: string[]
+}
+
 export interface ToolOutput {
   schema: Record<string, unknown>
   render: (args: Record<string, unknown>, value: unknown) => Array<{ type: 'text'; text: string }>
@@ -20,7 +28,7 @@ const stringOutput: ToolOutput = {
 export interface DarwinToolDef {
   name: string
   description: string
-  parameters: Record<string, { type: string; required?: boolean; description: string }>
+  parameters: ToolParametersSchema
   output: ToolOutput
   execute: (args: Record<string, unknown>) => Promise<string>
 }
@@ -34,7 +42,7 @@ export function buildDarwinTools(deps: {
       name: 'darwin_scan',
       description:
         '扫描最近的 DSH 会话日志，机械化挖掘重试环/工具错误簇/中断回合/Token 浪费，并合并进问题工单库。',
-      parameters: {},
+      parameters: { type: 'object', properties: {} },
       output: stringOutput,
       execute: async () => {
         const s = await deps.scan()
@@ -49,7 +57,10 @@ export function buildDarwinTools(deps: {
       name: 'darwin_report',
       description: '读取当前问题工单库，按严重度输出会话体检报告。',
       parameters: {
-        top: { type: 'number', description: '最多展示条数，默认 10' },
+        type: 'object',
+        properties: {
+          top: { type: 'number', description: '最多展示条数，默认 10' },
+        },
       },
       output: stringOutput,
       execute: async (args) => {

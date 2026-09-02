@@ -3,7 +3,17 @@ import type { ForgeServices } from './dsh-adapter.ts'
 import { pickNextTicket, findNearDuplicate, markClaimed } from './consumer.ts'
 import { synthesizeCandidate, DEFAULT_SYNTH_CONFIG, type SynthConfig } from './synthesizer.ts'
 
-/** VERIFIED 0.1.1-rc.2（实机）：ctx.tools.register 强制 output = { schema, render, presentationMeta? } */
+/**
+ * VERIFIED 0.1.1-rc.2（实机）：ctx.tools.register 强制 output = { schema, render, presentationMeta? }；
+ * parameters 必须是完整 JSON Schema（{ type: 'object', properties, required? }），
+ * 属性映射风格会被模型 API 拒绝（got 'type: null'）。
+ */
+export interface ToolParametersSchema {
+  type: 'object'
+  properties: Record<string, { type: string; description?: string }>
+  required?: string[]
+}
+
 export interface ToolOutput {
   schema: Record<string, unknown>
   render: (args: Record<string, unknown>, value: unknown) => Array<{ type: 'text'; text: string }>
@@ -17,7 +27,7 @@ const stringOutput: ToolOutput = {
 export interface ForgeToolDef {
   name: string
   description: string
-  parameters: Record<string, { type: string; required?: boolean; description: string }>
+  parameters: ToolParametersSchema
   output: ToolOutput
   execute: (args: Record<string, unknown>) => Promise<string>
 }
@@ -80,7 +90,10 @@ export function buildForgeTools(deps: ForgeDeps, hooks: ForgeHooks): ForgeToolDe
       description:
         '从问题工单合成候选修复（默认 skill/config 两级，零代码执行）。近重复工单会被拒绝重复立项。',
       parameters: {
-        ticketId: { type: 'string', description: '指定工单 id；缺省取严重度最高者' },
+        type: 'object',
+        properties: {
+          ticketId: { type: 'string', description: '指定工单 id；缺省取严重度最高者' },
+        },
       },
       output: stringOutput,
       execute: async (args) => {
@@ -104,8 +117,12 @@ export function buildForgeTools(deps: ForgeDeps, hooks: ForgeHooks): ForgeToolDe
       description:
         '将 skill 级候选晋级为正式技能文件（写入项目 .dsh/skills，官方热重载即时生效），并留下可回滚快照。',
       parameters: {
-        candidateId: { type: 'string', required: true, description: '候选 id' },
-        confirm: { type: 'boolean', description: '人工确认；requireConfirm 开启时必须为 true' },
+        type: 'object',
+        properties: {
+          candidateId: { type: 'string', description: '候选 id' },
+          confirm: { type: 'boolean', description: '人工确认；requireConfirm 开启时必须为 true' },
+        },
+        required: ['candidateId'],
       },
       output: stringOutput,
       execute: async (args) =>
@@ -115,8 +132,12 @@ export function buildForgeTools(deps: ForgeDeps, hooks: ForgeHooks): ForgeToolDe
       name: 'darwin_rollback',
       description: '把某技能回滚到最近一次晋级前的状态（确定性恢复快照，不用 LLM 重猜）。',
       parameters: {
-        skillName: { type: 'string', required: true, description: '技能名' },
-        confirm: { type: 'boolean', description: '人工确认' },
+        type: 'object',
+        properties: {
+          skillName: { type: 'string', description: '技能名' },
+          confirm: { type: 'boolean', description: '人工确认' },
+        },
+        required: ['skillName'],
       },
       output: stringOutput,
       execute: async (args) =>
