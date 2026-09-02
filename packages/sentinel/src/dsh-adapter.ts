@@ -81,7 +81,8 @@ export function wireSessionQuery(sessionQuery: unknown): SessionQueryPort {
 
   return {
     async listRecentSessions(limit) {
-      const records = (await sq.filterSessions!([{}])) as Array<
+      // VERIFIED：空数组 = 匹配全部（子句必须带 kind，[{}] 会报 unknown filter kind (missing)）
+      const records = (await sq.filterSessions!([])) as Array<
         Record<string, unknown> & { header?: Record<string, unknown> }
       >
       const refs = records
@@ -107,7 +108,7 @@ export function wireSessionQuery(sessionQuery: unknown): SessionQueryPort {
         return events.map((d) => toRawEvent(ref.id, d)).filter((e): e is RawEvent => e !== undefined)
       }
       if (typeof sq.filterEvents === 'function') {
-        const docs = (await sq.filterEvents!(ref.id, [{}])) as Array<Record<string, unknown>>
+        const docs = (await sq.filterEvents!(ref.id, [])) as Array<Record<string, unknown>>
         return docs.map((d) => toRawEvent(ref.id, d)).filter((e): e is RawEvent => e !== undefined)
       }
       throw new Error('[dsh-sentinel] ctx.sessionQuery 缺少 listEvents/filterEvents')
