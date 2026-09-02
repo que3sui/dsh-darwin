@@ -7,7 +7,7 @@ import {
   type LineageNode,
   type ProblemTicket,
   type SkillSnapshot,
-} from '@dsh-darwin/protocol'
+} from './protocol.ts'
 import {
   DomainCandidateStore,
   DomainSnapshotStore,
@@ -15,7 +15,7 @@ import {
   MemorySnapshotStore,
   type CandidateStore,
   type SnapshotStore,
-} from './store'
+} from './store.ts'
 
 /**
  * ★ 上游隔离层：forge 唯一接触真实 DSH 服务形状的地方（同 sentinel/dsh-adapter 约定）。

@@ -1,7 +1,7 @@
-import type { CandidatePlugin, LineageNode, ProblemTicket } from '@dsh-darwin/protocol'
-import type { ForgeServices } from './dsh-adapter'
-import { pickNextTicket, findNearDuplicate, markClaimed } from './consumer'
-import { synthesizeCandidate, DEFAULT_SYNTH_CONFIG, type SynthConfig } from './synthesizer'
+import type { CandidatePlugin, LineageNode, ProblemTicket } from './protocol.ts'
+import type { ForgeServices } from './dsh-adapter.ts'
+import { pickNextTicket, findNearDuplicate, markClaimed } from './consumer.ts'
+import { synthesizeCandidate, DEFAULT_SYNTH_CONFIG, type SynthConfig } from './synthesizer.ts'
 
 export interface ForgeToolDef {
   name: string

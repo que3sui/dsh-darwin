@@ -38,7 +38,11 @@ export interface DomainLike {
 
 /** 带 id 记录的通用集合访问（all/get/save），底层是任意 KvTableLike */
 export class KvCollection<T extends { id: string }> {
-  constructor(private table: KvTableLike<T>) {}
+  private table: KvTableLike<T>
+
+  constructor(table: KvTableLike<T>) {
+    this.table = table
+  }
 
   async all(): Promise<T[]> {
     return [...this.table.entries()].map(([, v]) => v)

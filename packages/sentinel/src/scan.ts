@@ -1,10 +1,10 @@
-import type { ProblemTicket } from '@dsh-darwin/protocol'
-import type { SessionFrame } from './events'
-import type { MinerConfig, Signal } from './miner'
-import { mineSessions } from './miner'
-import { distill, type DistillerConfig } from './distiller'
-import type { TicketStore } from './store'
-import type { SessionQueryPort } from './dsh-adapter'
+import type { ProblemTicket } from './protocol.ts'
+import type { SessionFrame } from './events.ts'
+import type { MinerConfig, Signal } from './miner.ts'
+import { mineSessions } from './miner.ts'
+import { distill, type DistillerConfig } from './distiller.ts'
+import type { TicketStore } from './store.ts'
+import type { SessionQueryPort } from './dsh-adapter.ts'
 
 export interface ScanDeps {
   query: SessionQueryPort

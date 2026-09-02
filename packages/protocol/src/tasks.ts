@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import type { AggregateMetrics, TaskResult } from './schema'
+import type { AggregateMetrics, TaskResult } from './schema.ts'
 
 /**
  * 回归任务集 = forge 评测门的"选择压"来源。

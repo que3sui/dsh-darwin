@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { synthesizeCandidate, DEFAULT_SYNTH_CONFIG } from '../src/synthesizer'
 import { promoteSkill, MemoryFilePort, renderSkillFile } from '../src/promote'
 import { rollbackSkill } from '../src/rollback'
-import type { CandidatePlugin, SkillArtifact } from '@dsh-darwin/protocol'
+import type { CandidatePlugin, SkillArtifact } from '../src/protocol.ts'
 
 const NOW = 1_700_000_000_000
 const ROOT = 'proj/.dsh/skills'

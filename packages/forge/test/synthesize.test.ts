@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { ProblemTicket } from '@dsh-darwin/protocol'
+import { ProblemTicket } from '../src/protocol.ts'
 import { synthesizeCandidate, DEFAULT_SYNTH_CONFIG, TierDisabledError } from '../src/synthesizer'
 import { pickNextTicket, findNearDuplicate, markClaimed } from '../src/consumer'
-import type { ProblemTicket as Ticket } from '@dsh-darwin/protocol'
+import type { ProblemTicket as Ticket } from '../src/protocol.ts'
 
 const NOW = 1_700_000_000_000
 

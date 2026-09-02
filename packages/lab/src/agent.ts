@@ -1,7 +1,7 @@
 import type { SkillArtifact } from '@dsh-darwin/protocol'
 import type { RawEvent } from 'dsh-sentinel'
-import type { Rng } from './rng'
-import type { TaskFamily } from './families'
+import type { Rng } from './rng.ts'
+import type { TaskFamily } from './families.ts'
 
 /**
  * 概率化 agent 行为模型——技能的作用机制被显式编码：

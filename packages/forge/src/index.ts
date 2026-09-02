@@ -1,11 +1,11 @@
 import { promises as fs } from 'node:fs'
 import { dirname } from 'node:path'
-import type { Tier } from '@dsh-darwin/protocol'
-import { wireForge, type ForgeContext, type ForgeServices } from './dsh-adapter'
-import { buildForgeTools, type ForgeDeps, type ForgeHooks } from './tool'
-import { promoteSkill, type FilePort } from './promote'
-import { rollbackSkill as doRollback } from './rollback'
-import { DEFAULT_SYNTH_CONFIG } from './synthesizer'
+import type { Tier } from './protocol.ts'
+import { wireForge, type ForgeContext, type ForgeServices } from './dsh-adapter.ts'
+import { buildForgeTools, type ForgeDeps, type ForgeHooks } from './tool.ts'
+import { promoteSkill, type FilePort } from './promote.ts'
+import { rollbackSkill as doRollback } from './rollback.ts'
+import { DEFAULT_SYNTH_CONFIG } from './synthesizer.ts'
 
 /**
  * dsh-forge —— dsh-darwin 双插件自进化架构的插件工厂（A 面）。
@@ -18,15 +18,15 @@ export const name = 'dsh-forge'
 
 export const inject = ['storageDomain', 'tools'] as const
 
-export type { ForgeContext, ForgeServices } from './dsh-adapter'
-export { MemoryFilePort, type FilePort } from './promote'
-export { decideGate, DEFAULT_GATE_POLICY, type GatePolicy } from './gate'
+export type { ForgeContext, ForgeServices } from './dsh-adapter.ts'
+export { MemoryFilePort, type FilePort } from './promote.ts'
+export { decideGate, DEFAULT_GATE_POLICY, type GatePolicy } from './gate.ts'
 export {
   DomainCandidateStore,
   MemoryCandidateStore,
   type CandidateStore,
   type SnapshotStore,
-} from './store'
+} from './store.ts'
 
 export interface ForgeConfig {
   enabledTiers: Tier[]

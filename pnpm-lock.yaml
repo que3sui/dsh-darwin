@@ -23,9 +23,6 @@ importers:
 
   packages/forge:
     dependencies:
-      '@dsh-darwin/protocol':
-        specifier: workspace:*
-        version: link:../protocol
       zod:
         specifier: ^3.25.76
         version: 3.25.76
@@ -53,9 +50,6 @@ importers:
 
   packages/sentinel:
     dependencies:
-      '@dsh-darwin/protocol':
-        specifier: workspace:*
-        version: link:../protocol
       zod:
         specifier: ^3.25.76
         version: 3.25.76

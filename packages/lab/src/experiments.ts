@@ -8,11 +8,11 @@ import {
 } from '@dsh-darwin/protocol'
 import { decideGate } from 'dsh-forge'
 import type { RawEvent } from 'dsh-sentinel'
-import { POISON_MARKER, runTask } from './agent'
-import { evaluateCandidate, familyOfCandidate, runSuite } from './evaluator'
-import { FAMILIES, LOAD_FAMILIES, type TaskFamily } from './families'
-import { mulberry32 } from './rng'
-import { bootLab, type Lab } from './runtime'
+import { POISON_MARKER, runTask } from './agent.ts'
+import { evaluateCandidate, familyOfCandidate, runSuite } from './evaluator.ts'
+import { FAMILIES, LOAD_FAMILIES, type TaskFamily } from './families.ts'
+import { mulberry32 } from './rng.ts'
+import { bootLab, type Lab } from './runtime.ts'
 
 /**
  * E1~E5：全部实验 mock 运行时、复用真实插件代码与真实评测门，

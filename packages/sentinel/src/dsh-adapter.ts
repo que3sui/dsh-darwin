@@ -4,10 +4,10 @@ import {
   MemoryKvStore,
   ProblemTicket,
   type KvTableLike,
-} from '@dsh-darwin/protocol'
-import type { RawEvent, RawEventType, SessionFrame } from './events'
-import type { TicketStore } from './store'
-import { DomainTicketStore, MemoryTicketStore } from './store'
+} from './protocol.ts'
+import type { RawEvent, RawEventType, SessionFrame } from './events.ts'
+import type { TicketStore } from './store.ts'
+import { DomainTicketStore, MemoryTicketStore } from './store.ts'
 
 /**
  * ★ 上游隔离层：本文件是 sentinel 唯一允许接触真实 DSH 服务形状的地方。

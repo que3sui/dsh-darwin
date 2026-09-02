@@ -1,6 +1,6 @@
-import type { SkillSnapshot } from '@dsh-darwin/protocol'
-import type { FilePort } from './promote'
-import { joinPath } from './promote-path'
+import type { SkillSnapshot } from './protocol.ts'
+import type { FilePort } from './promote.ts'
+import { joinPath } from './promote-path.ts'
 
 /**
  * 确定性回滚：完全依据晋级时留下的 SkillSnapshot 恢复，

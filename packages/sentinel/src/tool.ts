@@ -1,6 +1,6 @@
-import type { ScanSummary } from './scan'
-import { renderTicketReport } from './report'
-import type { TicketStore } from './store'
+import type { ScanSummary } from './scan.ts'
+import { renderTicketReport } from './report.ts'
+import type { TicketStore } from './store.ts'
 
 /**
  * 模型可调用的工具（定义形状与官方 defineTool 产物对齐的最小切面）。

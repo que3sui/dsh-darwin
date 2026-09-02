@@ -1,4 +1,4 @@
-import { DARWIN_TABLES, type KvTableLike, type ProblemTicket } from '@dsh-darwin/protocol'
+import { DARWIN_TABLES, type KvTableLike, type ProblemTicket } from './protocol.ts'
 
 export interface TicketStore {
   all(): Promise<ProblemTicket[]>
@@ -19,7 +19,11 @@ export class MemoryTicketStore implements TicketStore {
 
 /** 用官方 storageDomain 的 KvTable（结构切面）做持久化 */
 export class DomainTicketStore implements TicketStore {
-  constructor(private table: KvTableLike<ProblemTicket>) {}
+  private table: KvTableLike<ProblemTicket>
+
+  constructor(table: KvTableLike<ProblemTicket>) {
+    this.table = table
+  }
 
   static tableOf(domain: { table(name: string): KvTableLike<unknown> }): KvTableLike<ProblemTicket> {
     return domain.table(DARWIN_TABLES.tickets) as KvTableLike<ProblemTicket>

@@ -1,5 +1,5 @@
-import { Evidence, type ProblemKind } from '@dsh-darwin/protocol'
-import type { RawEvent, SessionFrame } from './events'
+import { Evidence, type ProblemKind } from './protocol.ts'
+import type { RawEvent, SessionFrame } from './events.ts'
 
 /**
  * 机械化信号挖掘（纯函数）——本插件的差异化核心：

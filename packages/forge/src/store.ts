@@ -4,7 +4,7 @@ import {
   type CandidatePlugin,
   type KvTableLike,
   type SkillSnapshot,
-} from '@dsh-darwin/protocol'
+} from './protocol.ts'
 
 export interface CandidateStore {
   all(): Promise<CandidatePlugin[]>
@@ -58,7 +58,11 @@ export class MemorySnapshotStore implements SnapshotStore {
 
 /** MVP 只保留最新快照（按 skillName 覆盖）；版本链在 P3 引入 lineage 表后开放 */
 export class DomainSnapshotStore implements SnapshotStore {
-  constructor(private table: KvTableLike<SkillSnapshot>) {}
+  private table: KvTableLike<SkillSnapshot>
+
+  constructor(table: KvTableLike<SkillSnapshot>) {
+    this.table = table
+  }
   async latest(skillName: string): Promise<SkillSnapshot | undefined> {
     return this.table.get(skillName)
   }

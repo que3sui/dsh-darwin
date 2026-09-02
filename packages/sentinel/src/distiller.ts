@@ -5,8 +5,8 @@ import {
   PROTOCOL_VERSION,
   type Evidence,
   type ProblemKind,
-} from '@dsh-darwin/protocol'
-import type { Signal } from './miner'
+} from './protocol.ts'
+import type { Signal } from './miner.ts'
 
 /**
  * 信号 → 工单（纯函数）。

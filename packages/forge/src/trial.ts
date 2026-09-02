@@ -1,4 +1,4 @@
-import type { CandidatePlugin } from '@dsh-darwin/protocol'
+import type { CandidatePlugin } from './protocol.ts'
 
 /**
  * 试挂（P2）：借助官方 Creator 模式 Gen 2 工具集背后的

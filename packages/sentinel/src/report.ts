@@ -1,4 +1,4 @@
-import type { ProblemTicket, ProblemKind } from '@dsh-darwin/protocol'
+import type { ProblemTicket, ProblemKind } from './protocol.ts'
 
 const KIND_LABEL: Record<ProblemKind, string> = {
   'retry-loop': '重试环',

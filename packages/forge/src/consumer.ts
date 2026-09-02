@@ -2,7 +2,7 @@ import {
   jaccardSimilarity,
   type CandidatePlugin,
   type ProblemTicket,
-} from '@dsh-darwin/protocol'
+} from './protocol.ts'
 
 /** 从工单库挑下一个要处理的工单：open 中严重度最高者 */
 export function pickNextTicket(tickets: ProblemTicket[]): ProblemTicket | undefined {

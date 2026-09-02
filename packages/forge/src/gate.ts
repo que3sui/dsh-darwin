@@ -1,4 +1,4 @@
-import type { AggregateMetrics, GateDecision } from '@dsh-darwin/protocol'
+import type { AggregateMetrics, GateDecision } from './protocol.ts'
 
 /**
  * 评测门 = 双插件架构里缺失的那块"选择压"。

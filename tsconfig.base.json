@@ -6,6 +6,7 @@
     "lib": ["ES2022"],
     "types": ["node"],
     "strict": true,
+    "allowImportingTsExtensions": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitOverride": true,
     "skipLibCheck": true,

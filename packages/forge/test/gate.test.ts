@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { decideGate, DEFAULT_GATE_POLICY } from '../src/gate'
-import type { AggregateMetrics } from '@dsh-darwin/protocol'
+import type { AggregateMetrics } from '../src/protocol.ts'
 
 function agg(passRate: number, avgTokens = 100, hiddenFailed = 0, total = 9): AggregateMetrics {
   const passed = Math.round(total * passRate)

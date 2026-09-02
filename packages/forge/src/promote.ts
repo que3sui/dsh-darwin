@@ -1,5 +1,5 @@
-import { SkillSnapshot, type CandidatePlugin, type SkillArtifact } from '@dsh-darwin/protocol'
-import { joinPath } from './promote-path'
+import { SkillSnapshot, type CandidatePlugin, type SkillArtifact } from './protocol.ts'
+import { joinPath } from './promote-path.ts'
 
 /**
  * 晋级（skill 级，P1）：

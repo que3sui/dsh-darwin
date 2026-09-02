@@ -4,7 +4,7 @@ import {
   PROTOCOL_VERSION,
   type ProblemTicket,
   type Tier,
-} from '@dsh-darwin/protocol'
+} from './protocol.ts'
 
 /**
  * 分级合成。风险从低到高：

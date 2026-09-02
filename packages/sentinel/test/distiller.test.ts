@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { fingerprintOf, PROTOCOL_VERSION } from '@dsh-darwin/protocol'
+import { fingerprintOf, PROTOCOL_VERSION } from '../src/protocol.ts'
 import { distill } from '../src/distiller'
 import type { Signal } from '../src/miner'
 

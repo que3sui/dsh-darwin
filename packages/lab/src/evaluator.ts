@@ -8,9 +8,9 @@ import {
   type TaskResult,
 } from '@dsh-darwin/protocol'
 import { decideGate, DEFAULT_GATE_POLICY } from 'dsh-forge'
-import { hasRelevantSkill, runTask } from './agent'
-import type { TaskFamily } from './families'
-import { mulberry32, type Rng } from './rng'
+import { hasRelevantSkill, runTask } from './agent.ts'
+import type { TaskFamily } from './families.ts'
+import { mulberry32, type Rng } from './rng.ts'
 
 /**
  * P2 评测替身：真实系统里这一步由 ctx.workflow 跑子代理完成；
