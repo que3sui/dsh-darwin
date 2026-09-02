@@ -3,14 +3,25 @@ import { renderTicketReport } from './report.ts'
 import type { TicketStore } from './store.ts'
 
 /**
- * 模型可调用的工具（定义形状与官方 defineTool 产物对齐的最小切面）。
- * 若运行环境可解析 @deepseek-ai/dsh-tools，可换成 defineTool() 以获得
- * schema 校验增强；纯对象在 ctx.tools.register 下同样可用（见 cookbook）。
+ * 模型可调用的工具。
+ * VERIFIED 0.1.1-rc.2（实机）：ctx.tools.register 强制要求
+ * output = { schema（JSON Schema）, render（函数）, presentationMeta? }。
  */
+export interface ToolOutput {
+  schema: Record<string, unknown>
+  render: (args: Record<string, unknown>, value: unknown) => Array<{ type: 'text'; text: string }>
+}
+
+const stringOutput: ToolOutput = {
+  schema: { type: 'string' },
+  render: (_args, value) => [{ type: 'text', text: String(value) }],
+}
+
 export interface DarwinToolDef {
   name: string
   description: string
   parameters: Record<string, { type: string; required?: boolean; description: string }>
+  output: ToolOutput
   execute: (args: Record<string, unknown>) => Promise<string>
 }
 
@@ -24,6 +35,7 @@ export function buildDarwinTools(deps: {
       description:
         '扫描最近的 DSH 会话日志，机械化挖掘重试环/工具错误簇/中断回合/Token 浪费，并合并进问题工单库。',
       parameters: {},
+      output: stringOutput,
       execute: async () => {
         const s = await deps.scan()
         return [
@@ -39,6 +51,7 @@ export function buildDarwinTools(deps: {
       parameters: {
         top: { type: 'number', description: '最多展示条数，默认 10' },
       },
+      output: stringOutput,
       execute: async (args) => {
         const store = await deps.store()
         const tickets = await store.all()

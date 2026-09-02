@@ -3,10 +3,22 @@ import type { ForgeServices } from './dsh-adapter.ts'
 import { pickNextTicket, findNearDuplicate, markClaimed } from './consumer.ts'
 import { synthesizeCandidate, DEFAULT_SYNTH_CONFIG, type SynthConfig } from './synthesizer.ts'
 
+/** VERIFIED 0.1.1-rc.2（实机）：ctx.tools.register 强制 output = { schema, render, presentationMeta? } */
+export interface ToolOutput {
+  schema: Record<string, unknown>
+  render: (args: Record<string, unknown>, value: unknown) => Array<{ type: 'text'; text: string }>
+}
+
+const stringOutput: ToolOutput = {
+  schema: { type: 'string' },
+  render: (_args, value) => [{ type: 'text', text: String(value) }],
+}
+
 export interface ForgeToolDef {
   name: string
   description: string
   parameters: Record<string, { type: string; required?: boolean; description: string }>
+  output: ToolOutput
   execute: (args: Record<string, unknown>) => Promise<string>
 }
 
@@ -70,6 +82,7 @@ export function buildForgeTools(deps: ForgeDeps, hooks: ForgeHooks): ForgeToolDe
       parameters: {
         ticketId: { type: 'string', description: '指定工单 id；缺省取严重度最高者' },
       },
+      output: stringOutput,
       execute: async (args) => {
         const r = await forgeNextCandidate(
           deps,
@@ -94,6 +107,7 @@ export function buildForgeTools(deps: ForgeDeps, hooks: ForgeHooks): ForgeToolDe
         candidateId: { type: 'string', required: true, description: '候选 id' },
         confirm: { type: 'boolean', description: '人工确认；requireConfirm 开启时必须为 true' },
       },
+      output: stringOutput,
       execute: async (args) =>
         hooks.promoteSkill(String(args.candidateId ?? ''), args.confirm === true, Date.now()),
     },
@@ -104,6 +118,7 @@ export function buildForgeTools(deps: ForgeDeps, hooks: ForgeHooks): ForgeToolDe
         skillName: { type: 'string', required: true, description: '技能名' },
         confirm: { type: 'boolean', description: '人工确认' },
       },
+      output: stringOutput,
       execute: async (args) =>
         hooks.rollbackSkill(String(args.skillName ?? ''), args.confirm === true, Date.now()),
     },
