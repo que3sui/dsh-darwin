@@ -35,7 +35,7 @@
 
 | 包 | 角色 | 状态 |
 |---|---|---|
-| `packages/protocol` | Zod schema 四件套 + 域名约定 + 回归任务格式（含隐藏评分器隔离 `redactForAgent`） | ✅ 可独立发布，目标：`dsh-evolution-protocol` 事实标准 |
+| `packages/protocol` | Zod schema 四件套 + 域名约定 + 回归任务格式（含隐藏评分器隔离 `redactForAgent`） | ✅ 随仓库分发（git tag 版本化）；npm 发布暂缓，待有外部接入需求时再上 |
 | `packages/sentinel` | 信号源插件：`darwin_scan` / `darwin_report` 工具，机械化挖掘 → 工单 | ✅ P0 可用，可独立安装当"会话体检" |
 | `packages/forge` | 插件工厂：`darwin_forge` / `darwin_promote` / `darwin_rollback` 工具 | ✅ P1（skill/config 级）；P2 试挂与 fork 评测门接口已预留 |
 
@@ -110,7 +110,8 @@ DeepSeek Harness 处于开发预览期，官方保证会有破坏性变更。本
 
 - 所有对 DSH 服务的访问收敛在每个包的 `src/dsh-adapter.ts`（标注 `TODO(verify 0.1.x)`）；
 - 对未验证的 API 形状采用**防御性探测 + 内存回退**，坏一个上游版本不会拖垮整个插件；
-- 当前对齐目标：`0.1.1-rc.2` ~ `0.1.2-alpha.x`。
+- 当前对齐目标：`0.1.1-rc.2` ~ `0.1.2-alpha.x`；
+- 上游 dist-tag 由 `upstream-watch` 工作流每周自动盯梢，变化即开 issue（已实抓到 0.1.2-alpha.4）。
 
 ## English
 
