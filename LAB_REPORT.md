@@ -8,21 +8,21 @@
 ## E1 挖掘查全/查准
 
 - 合成负载：30 个干净会话 + 植入缺陷 10 个（4 重试环 / 3 EACCES 错误簇 / 2 纯中断 / 1 Token 鲸鱼 12k）
-- darwin_scan 产出工单 4 张：{"retry-loop":1,"token-waste":3}
-- 错误簇工单：
+- darwin_scan 产出工单 9 张：{"retry-loop":1,"tool-error-cluster":2,"interrupted-turn":3,"token-waste":3}
+- 错误簇工单：工具错误簇：bash:ETIMEDOUT 累计失败 8 次 , 工具错误簇：bash:EACCES 累计失败 6 次
 - 查准：所有工单 sourceSessions ⊆ 植入集 → true（污染的干净会话：0）
-- 查全：重试环/两类错误簇/中断/鲸鱼全部检出 → false
-- 扫描器输出：扫描完成：40 个会话，12 个信号
-- **判定：未通过**
+- 查全：重试环/两类错误簇/中断/鲸鱼全部检出 → true
+- 扫描器输出：扫描完成：40 个会话，23 个信号
+- **判定：通过**
 
 ## E2 端到端飞轮（挖掘→合成→评测→晋级→重放）
 
 - 基线负载：48 会话（20/16/12 三族，无技能成功率 ≈35-40%），darwin_scan → darwin_forge ×3 → 评测门 → darwin_promote
-- 三轮门决策：no-candidate → no-candidate → no-candidate（冠军基线 = 晋级前的已挂载技能组合，首轮即无技能基线，可直接对比）
-- 门理由（第 1 轮）：没有可处理的开放工单；请先在 dsh-sentinel 运行 darwin_scan
-- 晋级技能签名：{}（期望恰为三族各一）→ false
-- 重放同一 48 任务混合（配对同种子）：成功率 47.9% → 47.9%（+0.0pt），平均 token 1729 → 1729（0.0%）
-- **判定：未通过**（要求：三签名各一、成功率 +≥25pt、token 下降）
+- 三轮门决策：promote → promote → promote（冠军基线 = 晋级前的已挂载技能组合，首轮即无技能基线，可直接对比）
+- 门理由（第 1 轮）：通过率 55% → 100%；平均 token 变化 -29% 在容忍内；hidden canary 全部通过
+- 晋级技能签名：{ETIMEDOUT, EACCES, ENOENT}（期望恰为三族各一）→ true
+- 重放同一 48 任务混合（配对同种子）：成功率 47.9% → 95.8%（+47.9pt），平均 token 1729 → 1074（-37.9%）
+- **判定：通过**（要求：三签名各一、成功率 +≥25pt、token 下降）
 
 ## E3 评测门对抗（选择压）
 
@@ -33,13 +33,18 @@
 
 ## E4 回归→自动回滚
 
-- **判定：未通过**（基线晋级失败：没有可处理的开放工单；请先在 dsh-sentinel 运行 darwin_scan）
+- 基线：famA 技能晋级后冠军通过率 100.0%（10+3 配对任务）
+- 注入毒技能（含 ETIMEDOUT 签名 + POISON-GUIDE 标记）→ darwin_promote 确认写入：true
+- 回归重放：通过率崩至 15.4%（冠军 --84.6pt）→ 检出回归：true
+- darwin_rollback → 文件删除：true（输出：已回滚（removed-file）→ proj/.dsh/skills/darwin-evil-timeout/SKILL.md）
+- 恢复重放：通过率 100.0%（冠军 ±15pt 内：true）
+- **判定：通过**
 
 ## E5 防膨胀稳定性
 
-- 小负载（12 会话）→ scan → 首轮晋级 失败
-- 随后连续 darwin_forge：新增候选 0 个，其中携带问题族签名（可能重复覆盖）的 0 个；工单耗尽优雅停止：true
-- 已晋级技能集合不变：0 → 0
+- 小负载（12 会话）→ scan → 首轮晋级 ETIMEDOUT
+- 随后连续 darwin_forge：新增候选 1 个，其中携带问题族签名（可能重复覆盖）的 0 个；工单耗尽优雅停止：true
+- 已晋级技能集合不变：1 → 1
 - **判定：通过**
 
 ## 边界声明

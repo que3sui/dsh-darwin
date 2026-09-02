@@ -168,7 +168,8 @@ function toRawEvents(sessionId: string, docs: Array<Record<string, unknown>>): R
           blocks[0]?.toolCallId ??
           '',
       )
-      const name = callNames.get(callId)
+      // 工具名：callId 反查（真实形状）→ 顶层 name（扁平形状回退）
+      const name = callNames.get(callId) ?? (data.name != null ? String(data.name) : undefined)
       if (name) ev.name = name
       const text = blocks
         .flatMap((b) => (b.content as Array<Record<string, unknown>> | undefined) ?? [])
@@ -179,6 +180,16 @@ function toRawEvents(sessionId: string, docs: Array<Record<string, unknown>>): R
       if (fail) {
         ev.errorCode = fail.code
         ev.errorText = fail.firstLine
+      } else if (data.errorCode != null || data.error != null) {
+        // 扁平回退：RawEvent 风格的直写字段（lab/内存路径）
+        const derr = data.error
+        ev.errorCode =
+          data.errorCode != null
+            ? String(data.errorCode)
+            : derr && typeof derr === 'object'
+              ? String((derr as Record<string, unknown>).code ?? (derr as Record<string, unknown>).name)
+              : String(derr)
+        if (data.errorText != null) ev.errorText = String(data.errorText)
       }
       out.push(ev)
       continue
@@ -194,6 +205,10 @@ function toRawEvents(sessionId: string, docs: Array<Record<string, unknown>>): R
         const kind = String((reason as Record<string, unknown>).kind ?? '')
         ev.turnEndReason = kind
         ev.interrupted = kind.toLowerCase().includes('interrupt')
+      } else {
+        // 扁平回退：直写 turnEndReason / interrupted（lab/内存路径）
+        if (data.turnEndReason != null) ev.turnEndReason = String(data.turnEndReason)
+        if (data.interrupted === true) ev.interrupted = true
       }
       out.push(ev)
       continue
