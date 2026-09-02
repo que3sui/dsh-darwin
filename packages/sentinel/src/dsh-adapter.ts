@@ -19,8 +19,8 @@ import { DomainTicketStore, MemoryTicketStore } from './store.ts'
  * - filterSessions(filters, signal?) 是 async；返回记录形如
  *   { header: { id, createdAt, cwd, parentSession, ... }, live, persisted }，
  *   且已按新→旧排序；
- * - listEvents(sessionId) 是 async，返回该会话原始事件记录（升序），
- *   优于 filterEvents 的语义检索文档（后者不含结构化 usage/errorCode）；
+ * - readSession(sessionId) 是 async，返回 { session, events:[完整原始事件] }——
+ *   挖掘的唯一正确事件源；listEvents 只返回元数据索引（无 data 载荷，实测坑）；
  * - ctx.storageDomain.open(spec)：异步、必须以方法形式调用（解构会丢 this）、
  *   tables 项为 { valueSchema: zod }；同名域 already-open，须先 get() 再 open()。
  */
@@ -65,6 +65,9 @@ export async function wireSentinel(ctx: SentinelContext): Promise<SentinelServic
 
 type QueryService = {
   filterSessions?: (filters: unknown[], signal?: unknown) => Promise<unknown[]>
+  /** VERIFIED：返回 {session, events:[完整原始事件(含 data 载荷)]}——挖掘用这个 */
+  readSession?: (sessionId: string) => Promise<{ session: unknown; events: unknown[] }>
+  /** VERIFIED：仅返回 {sessionId,seq,type,time,surface} 元数据索引——对挖掘无用 */
   listEvents?: (sessionId: string) => Promise<unknown[]>
   filterEvents?: (sessionId: string, filters: unknown[]) => Promise<unknown[]>
 }
@@ -102,16 +105,19 @@ export function wireSessionQuery(sessionQuery: unknown): SessionQueryPort {
     },
 
     async loadEvents(ref) {
-      // VERIFIED：优先 listEvents（原始记录）；映射含 callId→工具名关联与失败启发式
-      if (typeof sq.listEvents === 'function') {
-        const events = (await sq.listEvents!(ref.id)) as Array<Record<string, unknown>>
-        return toRawEvents(ref.id, events)
+      // VERIFIED（实机核销 2026-09-02）：listEvents 只返回 {sessionId,seq,type,time,surface}
+      // 元数据索引（无 data 载荷）；完整原始事件必须走 readSession().events
+      if (typeof sq.readSession === 'function') {
+        const loaded = (await sq.readSession!(ref.id)) as {
+          events: Array<Record<string, unknown>>
+        }
+        return toRawEvents(ref.id, loaded.events ?? [])
       }
       if (typeof sq.filterEvents === 'function') {
         const docs = (await sq.filterEvents!(ref.id, [])) as Array<Record<string, unknown>>
         return toRawEvents(ref.id, docs)
       }
-      throw new Error('[dsh-sentinel] ctx.sessionQuery 缺少 listEvents/filterEvents')
+      throw new Error('[dsh-sentinel] ctx.sessionQuery 缺少 readSession/filterEvents')
     },
   }
 }
