@@ -232,7 +232,11 @@ function num(v: unknown): number | undefined {
   return v == null ? undefined : Number(v)
 }
 
-/** 失败启发式：[stderr] 标记或非零 [exit code: N]；错误码取 stderr 首行（稳定聚类键） */
+/**
+ * 失败启发式：[stderr] 标记或非零 [exit code: N]。
+ * 聚类键只用退出码（语言无关——实测 PowerShell 同一错误会因本地化输出中/英混排，
+ * 按 stderr 首行聚类会把同类失败拆散）；消息全文降级为证据明细。
+ */
 function parseToolFailure(text: string): { code: string; firstLine: string } | undefined {
   if (!text) return undefined
   const exitMatch = /\[exit code:\s*(\d+)\]/.exec(text)
@@ -242,7 +246,7 @@ function parseToolFailure(text: string): { code: string; firstLine: string } | u
   const tail = stderrIdx >= 0 ? text.slice(stderrIdx + '[stderr]'.length) : text
   const firstLine = tail.split('\n').map((l) => l.trim()).find((l) => l.length > 0) ?? 'unknown-error'
   const code = exitMatch ? `exit-${exitMatch[1]}` : 'stderr'
-  return { code: `${code}:${firstLine.slice(0, 160)}`, firstLine: firstLine.slice(0, 200) }
+  return { code, firstLine: firstLine.slice(0, 200) }
 }
 
 /* ------------------------------ 工单存储 --------------------------------- */
