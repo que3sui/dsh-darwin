@@ -263,9 +263,7 @@ export async function wireTicketStore(
 ): Promise<TicketStore> {
   try {
     if (storageDomain && typeof storageDomain.open === 'function') {
-      // get-or-open：sentinel/forge 谁先启动都行，域 spec 两边完全一致
-      const domain =
-        storageDomain.get(DARWIN_DOMAIN) ?? (await storageDomain.open(darwinDomainSpec()))
+      const domain = await openOrAttach(storageDomain, log)
       const table = domain.table(DARWIN_TABLES.tickets) as KvTableLike<ProblemTicket>
       return new DomainTicketStore(table)
     }
@@ -276,6 +274,35 @@ export async function wireTicketStore(
     )
   }
   return new MemoryTicketStore()
+}
+
+/**
+ * 并发安全的 get-or-open（VERIFIED 实机踩坑）：
+ * sentinel/forge 同时启动时会竞态——先到者 open() 在途（域名已进 reserved
+ * 但未注册 domains），后到者 get() 为 undefined、再 open() 撞 already-open。
+ * 撞上 already-open 不降级，轮询 get() 等先到者注册完成（共享同一句柄）。
+ */
+export async function openOrAttach(
+  svc: StorageDomainService,
+  log?: SentinelContext['logger'],
+): Promise<{ table(name: string): KvTableLike<unknown> }> {
+  const attached = svc.get(DARWIN_DOMAIN)
+  if (attached) return attached
+  try {
+    return await svc.open(darwinDomainSpec())
+  } catch (err) {
+    const msg = String((err as Error)?.message ?? err)
+    if (!msg.includes('already-open')) throw err
+    for (let i = 0; i < 20; i++) {
+      await new Promise((r) => setTimeout(r, 100))
+      const got = svc.get(DARWIN_DOMAIN)
+      if (got) {
+        log?.info?.('[dsh-sentinel] 已挂载到先行者打开的 darwin 共享域')
+        return got
+      }
+    }
+    throw new Error('darwin 域被并发打开但等待句柄超时（2s）')
+  }
 }
 
 /** 测试/离线场景：从内存表构造 */
