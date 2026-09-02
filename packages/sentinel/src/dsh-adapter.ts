@@ -102,14 +102,14 @@ export function wireSessionQuery(sessionQuery: unknown): SessionQueryPort {
     },
 
     async loadEvents(ref) {
-      // VERIFIED：优先 listEvents（原始记录，含结构化 usage/errorCode）
+      // VERIFIED：优先 listEvents（原始记录）；映射含 callId→工具名关联与失败启发式
       if (typeof sq.listEvents === 'function') {
         const events = (await sq.listEvents!(ref.id)) as Array<Record<string, unknown>>
-        return events.map((d) => toRawEvent(ref.id, d)).filter((e): e is RawEvent => e !== undefined)
+        return toRawEvents(ref.id, events)
       }
       if (typeof sq.filterEvents === 'function') {
         const docs = (await sq.filterEvents!(ref.id, [])) as Array<Record<string, unknown>>
-        return docs.map((d) => toRawEvent(ref.id, d)).filter((e): e is RawEvent => e !== undefined)
+        return toRawEvents(ref.id, docs)
       }
       throw new Error('[dsh-sentinel] ctx.sessionQuery 缺少 listEvents/filterEvents')
     },
@@ -124,33 +124,110 @@ const KNOWN_TYPES: ReadonlySet<string> = new Set<RawEventType>([
   'assistant/message',
 ])
 
-function toRawEvent(sessionId: string, d: Record<string, unknown>): RawEvent | undefined {
-  const type = String(d.type ?? '')
-  if (!KNOWN_TYPES.has(type as RawEventType)) return undefined
-  const ev: RawEvent = {
-    sessionId,
-    seq: Number(d.seq ?? 0),
-    time: Number(d.time ?? 0),
-    type: type as RawEventType,
-  }
-  if (d.name != null) ev.name = String(d.name)
-  // VERIFIED：tool/result 的 error 可能是对象（{name, code} 一类）——防御性取 code
-  if (d.error != null) {
-    const err = d.error as Record<string, unknown>
-    ev.errorCode = String(err.code ?? err.name ?? d.error)
-  }
-  if (d.errorText != null) ev.errorText = String(d.errorText)
-  if (d.interrupted === true) ev.interrupted = true
-  if (d.reason != null) ev.turnEndReason = String(d.reason)
-  if (d.turn != null) ev.turn = Number(d.turn)
-  const usage = d.usage as Record<string, unknown> | undefined
-  if (usage && typeof usage === 'object') {
-    ev.usage = {
-      inputTokens: Number(usage.inputTokens ?? usage.input ?? 0),
-      outputTokens: Number(usage.outputTokens ?? usage.output ?? 0),
+/**
+ * VERIFIED（实机，2026-09-02，解压真实 session.jsonl.zstd 比对）：
+ * - 信封：{type, seq, time, data: {...}}，载荷全在 data 里；
+ * - tool/call：data.{turn, callId, name, arguments}；
+ * - tool/result：data.{turn, message:{source:{callId}, content:[{type:'tool-result',
+ *   content:[{type:'text', text}]}]}}——无结构化 error 字段，失败体现在文本
+ *   （[stderr] 标记 + [exit code: N]），工具名需按 callId 从 tool/call 反查；
+ * - turn/end：data.reason = {kind}（对象）；
+ * - assistant/message：data.usage（可能为 null）。
+ */
+function toRawEvents(sessionId: string, docs: Array<Record<string, unknown>>): RawEvent[] {
+  const callNames = new Map<string, string>()
+  const out: RawEvent[] = []
+
+  for (const doc of docs) {
+    const type = String(doc.type ?? '')
+    if (!KNOWN_TYPES.has(type as RawEventType)) continue
+    const data = (doc.data ?? doc) as Record<string, unknown>
+    const ev: RawEvent = {
+      sessionId,
+      seq: Number(doc.seq ?? 0),
+      time: Number(doc.time ?? 0),
+      type: type as RawEventType,
     }
+
+    if (type === 'tool/call') {
+      const callId = String(data.callId ?? '')
+      const name = String(data.name ?? '')
+      if (callId && name) callNames.set(callId, name)
+      ev.name = name || undefined
+      ev.turn = num(data.turn)
+      out.push(ev)
+      continue
+    }
+
+    if (type === 'tool/result') {
+      ev.turn = num(data.turn)
+      const message = data.message as Record<string, unknown> | undefined
+      const blocks = (message?.content ?? []) as Array<Record<string, unknown>>
+      const callId = String(
+        (message?.source as Record<string, unknown> | undefined)?.callId ??
+          blocks[0]?.toolCallId ??
+          '',
+      )
+      const name = callNames.get(callId)
+      if (name) ev.name = name
+      const text = blocks
+        .flatMap((b) => (b.content as Array<Record<string, unknown>> | undefined) ?? [])
+        .filter((c) => c.type === 'text')
+        .map((c) => String(c.text ?? ''))
+        .join('\n')
+      const fail = parseToolFailure(text)
+      if (fail) {
+        ev.errorCode = fail.code
+        ev.errorText = fail.firstLine
+      }
+      out.push(ev)
+      continue
+    }
+
+    if (type === 'turn/end') {
+      ev.turn = num(data.turn)
+      const reason = data.reason
+      if (typeof reason === 'string') {
+        ev.turnEndReason = reason
+        ev.interrupted = reason.toLowerCase().includes('interrupt')
+      } else if (reason && typeof reason === 'object') {
+        const kind = String((reason as Record<string, unknown>).kind ?? '')
+        ev.turnEndReason = kind
+        ev.interrupted = kind.toLowerCase().includes('interrupt')
+      }
+      out.push(ev)
+      continue
+    }
+
+    // assistant/message / llm/retry
+    ev.turn = num(data.turn)
+    const usage = data.usage as Record<string, unknown> | null | undefined
+    if (usage && typeof usage === 'object') {
+      ev.usage = {
+        inputTokens: Number(usage.inputTokens ?? usage.input ?? 0),
+        outputTokens: Number(usage.outputTokens ?? usage.output ?? 0),
+      }
+    }
+    out.push(ev)
   }
-  return ev
+  return out
+}
+
+function num(v: unknown): number | undefined {
+  return v == null ? undefined : Number(v)
+}
+
+/** 失败启发式：[stderr] 标记或非零 [exit code: N]；错误码取 stderr 首行（稳定聚类键） */
+function parseToolFailure(text: string): { code: string; firstLine: string } | undefined {
+  if (!text) return undefined
+  const exitMatch = /\[exit code:\s*(\d+)\]/.exec(text)
+  const failed = text.includes('[stderr]') || (exitMatch !== null && exitMatch[1] !== '0')
+  if (!failed) return undefined
+  const stderrIdx = text.indexOf('[stderr]')
+  const tail = stderrIdx >= 0 ? text.slice(stderrIdx + '[stderr]'.length) : text
+  const firstLine = tail.split('\n').map((l) => l.trim()).find((l) => l.length > 0) ?? 'unknown-error'
+  const code = exitMatch ? `exit-${exitMatch[1]}` : 'stderr'
+  return { code: `${code}:${firstLine.slice(0, 160)}`, firstLine: firstLine.slice(0, 200) }
 }
 
 /* ------------------------------ 工单存储 --------------------------------- */
