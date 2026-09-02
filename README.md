@@ -108,10 +108,10 @@ mock DSH 运行时 + **真实插件代码** + 种子化概率 agent，验证闭�
 
 DeepSeek Harness 处于开发预览期，官方保证会有破坏性变更。本仓库：
 
-- 所有对 DSH 服务的访问收敛在每个包的 `src/dsh-adapter.ts`（标注 `TODO(verify 0.1.x)`）；
-- 对未验证的 API 形状采用**防御性探测 + 内存回退**，坏一个上游版本不会拖垮整个插件；
-- 当前对齐目标：`0.1.1-rc.2` ~ `0.1.2-alpha.x`；
-- 上游 dist-tag 由 `upstream-watch` 工作流每周自动盯梢，变化即开 issue（已实抓到 0.1.2-alpha.4）。
+- **✅ 实机验证通过（2026-09-02，Windows + PowerShell 环境，DSH `0.1.1-rc.2`）**：六连全链路——`darwin_scan`（挖掘真实会话日志）→ `darwin_report` → `darwin_forge` → `darwin_promote`（技能写入 `.dsh/skills` 并被运行时识别）→ 文件核验 → `darwin_rollback`（确定性回滚）——全部在真实 DSH 进程内跑通；工单经共享 storageDomain 持久化（`~/.dsh/storages/darwin.json`）；
+- 十轮实机适配修复（原生 ESM 加载 / storageDomain 异步与竞态 / 工具 output 与 JSON Schema / 事件信封与失败启发式 / 本地化聚类）逐条记录于 git 历史 `fix(实机兼容#1~#10)`，全部结论以 `VERIFIED` 注释沉淀在各 `dsh-adapter.ts`；
+- 所有对 DSH 服务的访问收敛在每个包的 `src/dsh-adapter.ts`；对未验证的 API 形状采用**防御性探测 + 内存回退**，坏一个上游版本不会拖垮整个插件；
+- 上游 dist-tag 由 `upstream-watch` 工作流每周自动盯梢，变化即开 issue（已实抓到 0.1.2-alpha.4；新版上游的回归冒烟按 issue 清单执行）。
 
 ## English
 
