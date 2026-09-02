@@ -15,8 +15,12 @@ import { DomainTicketStore, MemoryTicketStore } from './store.ts'
  * 上游（deepseek-ai/deepseek-harness）处于开发预览期、保证破坏性变更，
  * 升级时只改这里。
  *
- * VERIFIED 0.1.1-rc.2（实机，2026-09-02）：
- * - ctx.sessionQuery.filterSessions / filterEvents 存在且为同步方法；
+ * VERIFIED 0.1.1-rc.2（实机，2026-09-02，读 dsh-session-query/lib 源码）：
+ * - filterSessions(filters, signal?) 是 async；返回记录形如
+ *   { header: { id, createdAt, cwd, parentSession, ... }, live, persisted }，
+ *   且已按新→旧排序；
+ * - listEvents(sessionId) 是 async，返回该会话原始事件记录（升序），
+ *   优于 filterEvents 的语义检索文档（后者不含结构化 usage/errorCode）；
  * - ctx.storageDomain.open(spec)：异步、必须以方法形式调用（解构会丢 this）、
  *   tables 项为 { valueSchema: zod }；同名域 already-open，须先 get() 再 open()。
  */
@@ -59,41 +63,54 @@ export async function wireSentinel(ctx: SentinelContext): Promise<SentinelServic
 
 /* ------------------------------ 会话查询 --------------------------------- */
 
-/** TODO(verify 0.1.x)：filterEvents 检索文档是语义文本索引（不含结构化 usage）；
- * 生产级挖掘应改用 SessionLogSnapshot（完整已验证日志）重放。 */
-export function wireSessionQuery(sessionQuery: unknown): SessionQueryPort {
-  const sq = sessionQuery as
-    | {
-        filterSessions?: (filters: unknown[]) => unknown[]
-        filterEvents?: (sessionId: string, filters: unknown[]) => unknown[]
-      }
-    | undefined
+type QueryService = {
+  filterSessions?: (filters: unknown[], signal?: unknown) => Promise<unknown[]>
+  listEvents?: (sessionId: string) => Promise<unknown[]>
+  filterEvents?: (sessionId: string, filters: unknown[]) => Promise<unknown[]>
+}
 
-  if (!sq || typeof sq.filterSessions !== 'function' || typeof sq.filterEvents !== 'function') {
+export function wireSessionQuery(sessionQuery: unknown): SessionQueryPort {
+  const sq = sessionQuery as QueryService | undefined
+
+  if (!sq || typeof sq.filterSessions !== 'function') {
     throw new Error(
-      '[dsh-sentinel] 找不到 ctx.sessionQuery（filterSessions/filterEvents）。' +
+      '[dsh-sentinel] 找不到 ctx.sessionQuery.filterSessions。' +
         '请确认 DSH >= 0.1.1 且 dsh-session-query provider 已挂载。',
     )
   }
 
   return {
     async listRecentSessions(limit) {
-      const records = sq.filterSessions!([{}]) as Array<Record<string, unknown>>
+      const records = (await sq.filterSessions!([{}])) as Array<
+        Record<string, unknown> & { header?: Record<string, unknown> }
+      >
       const refs = records
-        .map((r) => ({
-          id: String(r.id ?? r.sessionId ?? ''),
-          cwd: typeof r.cwd === 'string' ? r.cwd : undefined,
-          createdAt:
-            typeof r.createdAt === 'number' ? r.createdAt : Number(r.createdAt) || undefined,
-        }))
+        .map((r) => {
+          // VERIFIED：字段嵌套在 header 里（camelCase）
+          const h = (r.header ?? r) as Record<string, unknown>
+          return {
+            id: String(h.id ?? ''),
+            cwd: typeof h.cwd === 'string' ? h.cwd : undefined,
+            createdAt: Number(h.createdAt) || undefined,
+          }
+        })
         .filter((r) => r.id !== '')
+      // 官方已按新→旧排序，此处排序仅作双保险
       refs.sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0))
       return refs.slice(0, limit)
     },
 
     async loadEvents(ref) {
-      const docs = sq.filterEvents!(ref.id, [{}]) as Array<Record<string, unknown>>
-      return docs.map((d) => toRawEvent(ref.id, d)).filter((e): e is RawEvent => e !== undefined)
+      // VERIFIED：优先 listEvents（原始记录，含结构化 usage/errorCode）
+      if (typeof sq.listEvents === 'function') {
+        const events = (await sq.listEvents!(ref.id)) as Array<Record<string, unknown>>
+        return events.map((d) => toRawEvent(ref.id, d)).filter((e): e is RawEvent => e !== undefined)
+      }
+      if (typeof sq.filterEvents === 'function') {
+        const docs = (await sq.filterEvents!(ref.id, [{}])) as Array<Record<string, unknown>>
+        return docs.map((d) => toRawEvent(ref.id, d)).filter((e): e is RawEvent => e !== undefined)
+      }
+      throw new Error('[dsh-sentinel] ctx.sessionQuery 缺少 listEvents/filterEvents')
     },
   }
 }
@@ -116,7 +133,11 @@ function toRawEvent(sessionId: string, d: Record<string, unknown>): RawEvent | u
     type: type as RawEventType,
   }
   if (d.name != null) ev.name = String(d.name)
-  if (d.error != null) ev.errorCode = String(d.error)
+  // VERIFIED：tool/result 的 error 可能是对象（{name, code} 一类）——防御性取 code
+  if (d.error != null) {
+    const err = d.error as Record<string, unknown>
+    ev.errorCode = String(err.code ?? err.name ?? d.error)
+  }
   if (d.errorText != null) ev.errorText = String(d.errorText)
   if (d.interrupted === true) ev.interrupted = true
   if (d.reason != null) ev.turnEndReason = String(d.reason)
