@@ -51,6 +51,7 @@
 ```bash
 # 开发
 pnpm install
+pnpm build      # 先构建 lib/（lab 的类型检查依赖插件编译产物）
 pnpm typecheck   # 全包 TypeScript 严格模式
 pnpm test        # 60 个单测（miner/distiller/gate/promote/rollback/protocol/lab）
 pnpm lab         # 跑 5 组模拟实验并生成 LAB_REPORT.md（E1 挖掘查全查准 / E2 端到端飞轮 /
@@ -128,7 +129,7 @@ Self-evolution for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-ha
 Design stance: evolution requires **selection pressure**, not just mutation — the eval gate (`src/gate.ts`) enforces a pass-rate floor, champion regression, cost fitness, and hold-out canary veto; `redactForAgent` keeps graders out of agent context to prevent reward hacking.
 
 ```bash
-pnpm install && pnpm typecheck && pnpm build && pnpm test
+pnpm install && pnpm build && pnpm typecheck && pnpm test
 ```
 
 Install: `dsh plugin --profile <name> add dsh-darwin-sentinel` / `add dsh-darwin-forge` (npm), or add `./packages/<pkg>` after `pnpm build` (source).
