@@ -14,7 +14,8 @@
     "typecheck": "tsc -p packages/protocol && tsc -p packages/sentinel && tsc -p packages/forge && tsc -p packages/lab",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lab": "vitest run packages/lab/test/experiments.test.ts"
+    "lab": "vitest run packages/lab/test/experiments.test.ts",
+    "build": "tsc -p packages/sentinel/tsconfig.build.json && tsc -p packages/forge/tsconfig.build.json"
   },
   "devDependencies": {
     "@types/node": "^24.3.0",

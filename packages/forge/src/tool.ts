@@ -54,7 +54,7 @@ export async function forgeNextCandidate(
   const { services } = deps
   const tickets = await services.tickets.all()
   const ticket = ticketId ? tickets.find((t) => t.id === ticketId) : pickNextTicket(tickets)
-  if (!ticket) return { note: '没有可处理的开放工单；请先在 dsh-sentinel 运行 darwin_scan' }
+  if (!ticket) return { note: '没有可处理的开放工单；请先在 dsh-darwin-sentinel 运行 darwin_scan' }
 
   const candidates = await services.candidates.all()
   const dup = findNearDuplicate(`修复：${ticket.title}`, ticket.detail, candidates)
@@ -147,7 +147,7 @@ export function buildForgeTools(deps: ForgeDeps, hooks: ForgeHooks): ForgeToolDe
 }
 
 export function renderCandidates(candidates: CandidatePlugin[]): string {
-  if (candidates.length === 0) return 'dsh-forge：暂无候选。先运行 darwin_forge。'
+  if (candidates.length === 0) return 'dsh-darwin-forge：暂无候选。先运行 darwin_forge。'
   return candidates
     .map((c) => `- ${c.id} [${c.status}/${c.artifact.tier}] ${c.title}`)
     .join('\n')

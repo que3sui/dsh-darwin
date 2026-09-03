@@ -21,12 +21,12 @@ export interface SynthConfig {
 
 export const DEFAULT_SYNTH_CONFIG: SynthConfig = {
   enabledTiers: ['skill', 'config'],
-  author: 'dsh-forge@0.1.0 (template)',
+  author: 'dsh-darwin-forge@0.1.0 (template)',
 }
 
 export class TierDisabledError extends Error {
   constructor(tier: Tier) {
-    super(`[dsh-forge] 合成层级 "${tier}" 未启用（enabledTiers 见配置）；code 级计划在 P3 且默认关闭`)
+    super(`[dsh-darwin-forge] 合成层级 "${tier}" 未启用（enabledTiers 见配置）；code 级计划在 P3 且默认关闭`)
   }
 }
 
@@ -98,11 +98,11 @@ function synthesizeSkill(ticket: ProblemTicket) {
     skillName,
     frontmatter: {
       name: skillName,
-      description: `规避已监测到的「${ticket.title}」（dsh-sentinel 工单 ${ticket.id}）`.slice(0, 500),
+      description: `规避已监测到的「${ticket.title}」（dsh-darwin-sentinel 工单 ${ticket.id}）`.slice(0, 500),
       whenToUse: '当任务情境与下方症状匹配时',
     },
     body: [
-      `## 背景（来自 dsh-sentinel 工单 ${ticket.id}）`,
+      `## 背景（来自 dsh-darwin-sentinel 工单 ${ticket.id}）`,
       '',
       `- 症状：${ticket.title}`,
       `- 累计 ${ticket.occurrences} 次，估计浪费 ~${ticket.wastedTokensEstimate} tokens`,
@@ -131,7 +131,7 @@ function synthesizeConfig(ticket: ProblemTicket) {
       {
         // 整行替换语义的占位行：disabled: true 保证即使被误启用也无副作用
         id: `darwin-config-${fingerprintOf('config', ticket.fingerprint).slice(0, 8)}`,
-        name: 'dsh-forge-config-suggestion',
+        name: 'dsh-darwin-forge-config-suggestion',
         disabled: true,
         config: {},
       },

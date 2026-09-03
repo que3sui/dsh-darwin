@@ -29,6 +29,9 @@ jobs:
       - name: Typecheck (4 packages, strict)
         run: pnpm typecheck
 
+      - name: Build plugins (lib/ emit for npm publish)
+        run: pnpm build
+
       - name: Unit tests + lab experiments
         run: pnpm test
 

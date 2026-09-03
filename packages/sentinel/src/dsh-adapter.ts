@@ -77,7 +77,7 @@ export function wireSessionQuery(sessionQuery: unknown): SessionQueryPort {
 
   if (!sq || typeof sq.filterSessions !== 'function') {
     throw new Error(
-      '[dsh-sentinel] 找不到 ctx.sessionQuery.filterSessions。' +
+      '[dsh-darwin-sentinel] 找不到 ctx.sessionQuery.filterSessions。' +
         '请确认 DSH >= 0.1.1 且 dsh-session-query provider 已挂载。',
     )
   }
@@ -117,7 +117,7 @@ export function wireSessionQuery(sessionQuery: unknown): SessionQueryPort {
         const docs = (await sq.filterEvents!(ref.id, [])) as Array<Record<string, unknown>>
         return toRawEvents(ref.id, docs)
       }
-      throw new Error('[dsh-sentinel] ctx.sessionQuery 缺少 readSession/filterEvents')
+      throw new Error('[dsh-darwin-sentinel] ctx.sessionQuery 缺少 readSession/filterEvents')
     },
   }
 }
@@ -267,10 +267,10 @@ export async function wireTicketStore(
       const table = domain.table(DARWIN_TABLES.tickets) as KvTableLike<ProblemTicket>
       return new DomainTicketStore(table)
     }
-    log?.warn?.('[dsh-sentinel] 无 ctx.storageDomain，使用内存工单库（重启即失）')
+    log?.warn?.('[dsh-darwin-sentinel] 无 ctx.storageDomain，使用内存工单库（重启即失）')
   } catch (err) {
     log?.warn?.(
-      `[dsh-sentinel] storageDomain 打开失败，回退内存工单库（重启即失）：${String(err)}`,
+      `[dsh-darwin-sentinel] storageDomain 打开失败，回退内存工单库（重启即失）：${String(err)}`,
     )
   }
   return new MemoryTicketStore()
@@ -301,7 +301,7 @@ export async function openOrAttach(
       await new Promise((r) => setTimeout(r, 100))
       const got = svc.get(DARWIN_DOMAIN)
       if (got) {
-        log?.info?.('[dsh-sentinel] 已挂载到先行者打开的 darwin 共享域')
+        log?.info?.('[dsh-darwin-sentinel] 已挂载到先行者打开的 darwin 共享域')
         return got
       }
     }

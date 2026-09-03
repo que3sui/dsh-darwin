@@ -1,19 +1,45 @@
 {
-  "name": "dsh-sentinel",
-  "version": "0.1.0",
+  "name": "dsh-darwin-sentinel",
+  "version": "0.1.1",
   "description": "DSH 自进化信号源：机械挖掘会话日志（重试簇/工具错误簇/中断回合/Token 浪费）→ 结构化问题工单。dsh-darwin 双插件架构的 B 面，可独立安装当会话体检用。",
   "license": "MIT",
   "type": "module",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    }
   },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "README.md"
+  ],
   "scripts": {
-    "typecheck": "tsc -p ."
+    "typecheck": "tsc -p .",
+    "build": "tsc -p tsconfig.build.json",
+    "prepublishOnly": "pnpm build"
   },
   "dependencies": {
     "zod": "^3.25.76"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "dsh-plugin",
+    "agent",
+    "session-mining",
+    "self-evolution"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/que3sui/dsh-darwin.git",
+    "directory": "packages/sentinel"
   },
   "dsh": {
     "bundle": {

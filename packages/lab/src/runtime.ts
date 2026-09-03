@@ -10,14 +10,14 @@ import {
   DomainTicketStore,
   type RawEvent,
   type SessionFrame,
-} from 'dsh-sentinel'
+} from 'dsh-darwin-sentinel'
 import {
   apply as forgeApply,
   DomainCandidateStore,
   MemoryFilePort,
   type CandidateStore,
   type FilePort,
-} from 'dsh-forge'
+} from 'dsh-darwin-forge'
 
 /**
  * Mock DSH 运行时：内存会话日志 + 共享 storageDomain + 内存文件系统。

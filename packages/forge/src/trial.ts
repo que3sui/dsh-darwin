@@ -35,7 +35,7 @@ export function wireTrial(ctx: { dynamicCordisRunner?: unknown }): TrialPort {
     | undefined
   if (!r || typeof r.define !== 'function') {
     throw new TrialDisabledError(
-      '[dsh-forge] 找不到 ctx.dynamicCordisRunner：请在 profile 补丁显式挂载 cordis-host-runner（见官方 dynamic-cordis.md），且仅在你接受 bash 级信任时启用。',
+      '[dsh-darwin-forge] 找不到 ctx.dynamicCordisRunner：请在 profile 补丁显式挂载 cordis-host-runner（见官方 dynamic-cordis.md），且仅在你接受 bash 级信任时启用。',
     )
   }
   return {
@@ -60,7 +60,7 @@ export async function withTrialMount<T>(
 ): Promise<T> {
   if (candidate.artifact.tier !== 'code') {
     throw new TrialDisabledError(
-      `[dsh-forge] 层级 "${candidate.artifact.tier}" 不需要 vm 试挂：skill 走文件热重载路径，config 永远人工处理`,
+      `[dsh-darwin-forge] 层级 "${candidate.artifact.tier}" 不需要 vm 试挂：skill 走文件热重载路径，config 永远人工处理`,
     )
   }
   const pluginId = candidate.artifact.pluginId

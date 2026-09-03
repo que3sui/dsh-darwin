@@ -65,7 +65,7 @@ export async function promoteSkill(
   opts: PromoteOptions,
 ): Promise<PromoteOutcome> {
   if (candidate.artifact.tier !== 'skill') {
-    throw new Error(`[dsh-forge] promoteSkill 只接受 skill 级候选，收到 "${candidate.artifact.tier}"`)
+    throw new Error(`[dsh-darwin-forge] promoteSkill 只接受 skill 级候选，收到 "${candidate.artifact.tier}"`)
   }
   const artifact: SkillArtifact = candidate.artifact
   const path = joinPath(opts.skillsRoot, artifact.skillName, 'SKILL.md')

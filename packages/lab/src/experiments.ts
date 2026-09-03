@@ -6,8 +6,8 @@ import {
   type GateDecision,
   type SkillArtifact,
 } from '@dsh-darwin/protocol'
-import { decideGate } from 'dsh-forge'
-import type { RawEvent } from 'dsh-sentinel'
+import { decideGate } from 'dsh-darwin-forge'
+import type { RawEvent } from 'dsh-darwin-sentinel'
 import { POISON_MARKER, runTask } from './agent.ts'
 import { evaluateCandidate, familyOfCandidate, runSuite } from './evaluator.ts'
 import { FAMILIES, LOAD_FAMILIES, type TaskFamily } from './families.ts'
@@ -506,7 +506,7 @@ export async function runAllExperiments(): Promise<{ sections: Section[]; report
     '# dsh-darwin 模拟实验报告（LAB）',
     '',
     `> 运行环境：Node ${process.version}；全部实验固定种子可复现。`,
-    '> 方法：mock DSH 运行时（会话日志/共享存储域/内存文件系统），`dsh-sentinel` 与 `dsh-forge` 的 `apply()` 原封不动挂载；评测门为真实的 `decideGate`；概率 agent 的技能效应按"签名匹配"简化建模。',
+    '> 方法：mock DSH 运行时（会话日志/共享存储域/内存文件系统），`dsh-darwin-sentinel` 与 `dsh-darwin-forge` 的 `apply()` 原封不动挂载；评测门为真实的 `decideGate`；概率 agent 的技能效应按"签名匹配"简化建模。',
     '',
     `**总判定：${allPass ? '✅ 全部通过' : '❌ 存在未通过项'}**`,
     '',

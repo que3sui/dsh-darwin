@@ -1,19 +1,45 @@
 {
-  "name": "dsh-forge",
-  "version": "0.1.0",
-  "description": "DSH 自进化插件工厂：消费 dsh-sentinel 问题工单 → 分级合成（config/skill→template/code）→ 评测门（fork A/B + 回归套件 + 成本适应度）→ 晋级/自动回滚。dsh-darwin 双插件架构的 A 面。MVP 默认只启用零代码执行的两级。",
+  "name": "dsh-darwin-forge",
+  "version": "0.1.1",
+  "description": "DSH 自进化插件工厂：消费 dsh-darwin-sentinel 问题工单 → 分级合成（config/skill→template/code）→ 评测门（fork A/B + 回归套件 + 成本适应度）→ 晋级/自动回滚。dsh-darwin 双插件架构的 A 面。MVP 默认只启用零代码执行的两级。",
   "license": "MIT",
   "type": "module",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    }
   },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "README.md"
+  ],
   "scripts": {
-    "typecheck": "tsc -p ."
+    "typecheck": "tsc -p .",
+    "build": "tsc -p tsconfig.build.json",
+    "prepublishOnly": "pnpm build"
   },
   "dependencies": {
     "zod": "^3.25.76"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "dsh-plugin",
+    "agent",
+    "skill-synthesis",
+    "self-evolution"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/que3sui/dsh-darwin.git",
+    "directory": "packages/forge"
   },
   "dsh": {
     "bundle": {

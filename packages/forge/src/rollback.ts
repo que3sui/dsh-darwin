@@ -24,7 +24,7 @@ export async function rollbackSkill(
   opts: RollbackOptions,
 ): Promise<RollbackOutcome> {
   if (snapshot.skillName !== skillName) {
-    throw new Error(`[dsh-forge] 快照与技能名不匹配：${snapshot.skillName} ≠ ${skillName}`)
+    throw new Error(`[dsh-darwin-forge] 快照与技能名不匹配：${snapshot.skillName} ≠ ${skillName}`)
   }
   const path = joinPath(opts.skillsRoot, skillName, 'SKILL.md')
 

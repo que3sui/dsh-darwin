@@ -3,13 +3,13 @@ import { scanOnce } from './scan.ts'
 import { wireSentinel, type SentinelContext } from './dsh-adapter.ts'
 
 /**
- * dsh-sentinel —— dsh-darwin 双插件自进化架构的信号源（B 面）。
+ * dsh-darwin-sentinel —— dsh-darwin 双插件自进化架构的信号源（B 面）。
  * 只读为主：机械挖掘会话日志 → 结构化 ProblemTicket 落入 storageDomain
- * 共享域 `darwin`，供 dsh-forge（插件工厂）消费。
+ * 共享域 `darwin`，供 dsh-darwin-forge（插件工厂）消费。
  * 可独立安装：不装 forge 时，darwin_report/darwin_scan 就是会话体检工具。
  */
 
-export const name = 'dsh-sentinel'
+export const name = 'dsh-darwin-sentinel'
 
 /** Cordis 依赖声明：fiber 在这些服务就绪前保持 PENDING */
 export const inject = ['sessionQuery', 'storageDomain', 'tools'] as const
@@ -34,11 +34,11 @@ export async function apply(
   for (const tool of buildDarwinTools({ scan, store: async () => store })) {
     ctx.tools?.register?.(tool)
   }
-  ctx.logger?.info?.('[dsh-sentinel] 已注册 darwin_scan / darwin_report')
+  ctx.logger?.info?.('[dsh-darwin-sentinel] 已注册 darwin_scan / darwin_report')
 
   if (config.autoScan) {
     // TODO(P0.1)：订阅官方 'session/event' firehose，每 N turn 节流触发 scanOnce()。
     // 预览期事件订阅形状未定，暂不启用，避免坏一个上游版本拖垮整个插件。
-    ctx.logger?.warn?.('[dsh-sentinel] autoScan 在 P0 尚未实现，请使用 darwin_scan 手动触发')
+    ctx.logger?.warn?.('[dsh-darwin-sentinel] autoScan 在 P0 尚未实现，请使用 darwin_scan 手动触发')
   }
 }

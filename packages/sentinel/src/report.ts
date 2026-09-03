@@ -14,9 +14,9 @@ export function renderTicketReport(tickets: ProblemTicket[], top = 10): string {
     .filter((t) => t.status === 'open' || t.status === 'claimed')
     .sort((a, b) => b.severity - a.severity)
   if (open.length === 0) {
-    return 'dsh-sentinel：当前没有开放的问题工单。运行 darwin_scan 触发一次扫描。'
+    return 'dsh-darwin-sentinel：当前没有开放的问题工单。运行 darwin_scan 触发一次扫描。'
   }
-  const lines: string[] = [`## dsh-sentinel 会话体检（开放工单 ${open.length}）`, '']
+  const lines: string[] = [`## dsh-darwin-sentinel 会话体检（开放工单 ${open.length}）`, '']
   for (const t of open.slice(0, top)) {
     lines.push(
       `### [${t.severity}] ${KIND_LABEL[t.kind]} · ${t.title}`,

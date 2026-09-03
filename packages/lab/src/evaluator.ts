@@ -7,7 +7,7 @@ import {
   type SkillArtifact,
   type TaskResult,
 } from '@dsh-darwin/protocol'
-import { decideGate, DEFAULT_GATE_POLICY } from 'dsh-forge'
+import { decideGate, DEFAULT_GATE_POLICY } from 'dsh-darwin-forge'
 import { hasRelevantSkill, runTask } from './agent.ts'
 import type { TaskFamily } from './families.ts'
 import { mulberry32, type Rng } from './rng.ts'

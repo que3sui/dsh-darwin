@@ -1,7 +1,7 @@
 # dsh-darwin 模拟实验报告（LAB）
 
 > 运行环境：Node v24.14.0；全部实验固定种子可复现。
-> 方法：mock DSH 运行时（会话日志/共享存储域/内存文件系统），`dsh-sentinel` 与 `dsh-forge` 的 `apply()` 原封不动挂载；评测门为真实的 `decideGate`；概率 agent 的技能效应按"签名匹配"简化建模。
+> 方法：mock DSH 运行时（会话日志/共享存储域/内存文件系统），`dsh-darwin-sentinel` 与 `dsh-darwin-forge` 的 `apply()` 原封不动挂载；评测门为真实的 `decideGate`；概率 agent 的技能效应按"签名匹配"简化建模。
 
 **总判定：✅ 全部通过**
 

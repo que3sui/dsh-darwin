@@ -1,9 +1,9 @@
-# dsh-forge bundle patch
+# dsh-darwin-forge bundle patch
 # 信任边界：forge 会合成工件并（P2 起）挂载代码。默认配置刻意保守：
 # 只启用零代码执行的 config/skill 两级，code 级需显式开启且逐案人工确认。
 - insert:
     - id: darwin-forge
-      name: dsh-forge
+      name: dsh-darwin-forge
       config:
         enabledTiers: [skill, config]
         requireConfirm: true

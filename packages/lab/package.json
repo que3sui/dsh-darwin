@@ -15,8 +15,8 @@
   },
   "dependencies": {
     "@dsh-darwin/protocol": "workspace:*",
-    "dsh-forge": "workspace:*",
-    "dsh-sentinel": "workspace:*",
+    "dsh-darwin-forge": "workspace:*",
+    "dsh-darwin-sentinel": "workspace:*",
     "zod": "^3.25.76"
   }
 }

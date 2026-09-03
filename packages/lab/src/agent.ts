@@ -1,5 +1,5 @@
 import type { SkillArtifact } from '@dsh-darwin/protocol'
-import type { RawEvent } from 'dsh-sentinel'
+import type { RawEvent } from 'dsh-darwin-sentinel'
 import type { Rng } from './rng.ts'
 import type { TaskFamily } from './families.ts'
 

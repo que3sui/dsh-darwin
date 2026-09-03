@@ -8,13 +8,13 @@ import { rollbackSkill as doRollback } from './rollback.ts'
 import { DEFAULT_SYNTH_CONFIG } from './synthesizer.ts'
 
 /**
- * dsh-forge —— dsh-darwin 双插件自进化架构的插件工厂（A 面）。
- * 消费 dsh-sentinel 的问题工单 → 分级合成候选（MVP：skill/config，零代码执行）
+ * dsh-darwin-forge —— dsh-darwin 双插件自进化架构的插件工厂（A 面）。
+ * 消费 dsh-darwin-sentinel 的问题工单 → 分级合成候选（MVP：skill/config，零代码执行）
  * → 人工确认晋级为 .dsh/skills 技能（热重载）→ 留快照供确定性回滚。
  * P2 接 cordis 试挂 + fork A/B 评测门；P3 才考虑 code 级合成（默认禁用）。
  */
 
-export const name = 'dsh-forge'
+export const name = 'dsh-darwin-forge'
 
 export const inject = ['storageDomain', 'tools'] as const
 
@@ -106,7 +106,7 @@ export async function apply(ctx: ForgeContext, config: Partial<ForgeConfig> = {}
   for (const tool of buildForgeTools(deps, hooks)) {
     ctx.tools?.register?.(tool)
   }
-  ctx.logger?.info?.('[dsh-forge] 已注册 darwin_forge / darwin_promote / darwin_rollback')
+  ctx.logger?.info?.('[dsh-darwin-forge] 已注册 darwin_forge / darwin_promote / darwin_rollback')
 }
 
 class NodeFilePort implements FilePort {

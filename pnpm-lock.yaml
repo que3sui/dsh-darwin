@@ -32,10 +32,10 @@ importers:
       '@dsh-darwin/protocol':
         specifier: workspace:*
         version: link:../protocol
-      dsh-forge:
+      dsh-darwin-forge:
         specifier: workspace:*
         version: link:../forge
-      dsh-sentinel:
+      dsh-darwin-sentinel:
         specifier: workspace:*
         version: link:../sentinel
       zod:

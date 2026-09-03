@@ -34,5 +34,6 @@
   },
   "dependencies": {
     "zod": "^3.25.76"
-  }
+  },
+  "private": true
 }

@@ -65,9 +65,9 @@ export async function wireForge(ctx: ForgeContext): Promise<ForgeServices> {
         ),
       }
     }
-    ctx.logger?.warn?.('[dsh-forge] 无 ctx.storageDomain，退化为内存存储（重启即失）')
+    ctx.logger?.warn?.('[dsh-darwin-forge] 无 ctx.storageDomain，退化为内存存储（重启即失）')
   } catch (err) {
-    ctx.logger?.warn?.(`[dsh-forge] storageDomain 打开失败，退化为内存存储：${String(err)}`)
+    ctx.logger?.warn?.(`[dsh-darwin-forge] storageDomain 打开失败，退化为内存存储：${String(err)}`)
   }
   return memoryServices()
 }
@@ -112,7 +112,7 @@ async function openOrAttach(
       await new Promise((r) => setTimeout(r, 100))
       const got = svc.get(DARWIN_DOMAIN)
       if (got) {
-        log?.info?.('[dsh-forge] 已挂载到先行者打开的 darwin 共享域')
+        log?.info?.('[dsh-darwin-forge] 已挂载到先行者打开的 darwin 共享域')
         return got
       }
     }

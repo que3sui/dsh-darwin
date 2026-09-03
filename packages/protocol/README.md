@@ -2,7 +2,7 @@
 
 **中文** | [English](#english)
 
-[dsh-darwin](https://github.com/que3sui/dsh-darwin) 双插件自进化架构的共享协议包：`dsh-sentinel`（信号源）与 `dsh-forge`（插件工厂）之间唯一的通信合同。
+[dsh-darwin](https://github.com/que3sui/dsh-darwin) 双插件自进化架构的共享协议包：`dsh-darwin-sentinel`（信号源）与 `dsh-darwin-forge`（插件工厂）之间唯一的通信合同。
 
 ## 内容
 

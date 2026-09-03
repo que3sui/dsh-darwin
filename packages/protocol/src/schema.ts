@@ -3,7 +3,7 @@ import { z } from 'zod'
 /**
  * dsh-evolution-protocol v0.1.0
  *
- * dsh-sentinel（信号源）与 dsh-forge（插件工厂）之间的全部合同。
+ * dsh-darwin-sentinel（信号源）与 dsh-darwin-forge（插件工厂）之间的全部合同。
  * 两个插件只通过 storageDomain 共享域 + 本 schema 通信，彼此不 import。
  * 参照 dsh-memento 的 dsh-memory-protocol v1 先例，目标是可独立演化的事实标准。
  */

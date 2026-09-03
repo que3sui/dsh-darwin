@@ -7,7 +7,7 @@
 
 **中文** | [English](#english)
 
-> 给 [DeepSeek Harness（dsh）](https://github.com/deepseek-ai/deepseek-harness) 的**双插件自进化架构**：一个插件负责"发现问题"（`dsh-sentinel`），一个插件负责"制造修复"（`dsh-forge`），中间用一份可独立发布的协议（`@dsh-darwin/protocol`）传递**问题工单 → 候选 → 评测回执 → 谱系**。
+> 给 [DeepSeek Harness（dsh）](https://github.com/deepseek-ai/deepseek-harness) 的**双插件自进化架构**：一个插件负责"发现问题"（`dsh-darwin-sentinel`），一个插件负责"制造修复"（`dsh-darwin-forge`），中间用一份可独立发布的协议（`@dsh-darwin/protocol`）传递**问题工单 → 候选 → 评测回执 → 谱系**。
 >
 > 与市面上"LLM 自由反思"式进化插件的本质区别：**变异之外必须有选择压**——评测门（隐藏评分器 + 回归套件 + 成本适应度）和确定性回滚。没有选择的进化只是随机生成。
 
@@ -18,7 +18,7 @@
 │                         DSH 运行时 (Cordis)                       │
 │                                                                   │
 │  ┌───────────────┐  ProblemTicket   ┌─────────────────────────┐  │
-│  │ dsh-sentinel  │ ────────────────▶│ dsh-forge               │  │
+│  │ dsh-darwin-sentinel  │ ────────────────▶│ dsh-darwin-forge               │  │
 │  │ 信号源（B 面） │  (storageDomain  │ 插件工厂（A 面）          │  │
 │  │               │   共享域 darwin)  │                          │  │
 │  │ · 重试环       │                  │ · 近重复拒绝              │  │
@@ -52,14 +52,22 @@
 # 开发
 pnpm install
 pnpm typecheck   # 全包 TypeScript 严格模式
-pnpm test        # 55 个单测（miner/distiller/gate/promote/rollback/protocol/lab）
+pnpm test        # 60 个单测（miner/distiller/gate/promote/rollback/protocol/lab）
 pnpm lab         # 跑 5 组模拟实验并生成 LAB_REPORT.md（E1 挖掘查全查准 / E2 端到端飞轮 /
                  #   E3 评测门对抗 / E4 回归自动回滚 / E5 防膨胀稳定性）
 
-# 安装到 DSH（在有 DSH 的机器上）
+# 安装到 DSH（方式一：npm 安装，推荐）
+dsh plugin --profile <你的profile> add dsh-darwin-sentinel
+dsh plugin --profile <你的profile> add dsh-darwin-forge
+
+# 安装到 DSH（方式二：从源码安装）
+git clone git@github.com:que3sui/dsh-darwin.git && cd dsh-darwin
+pnpm install && pnpm build   # 先构建出 packages/*/lib（npm 包内容即此产物）
 dsh plugin --profile <你的profile> add ./packages/sentinel
 dsh plugin --profile <你的profile> add ./packages/forge
 ```
+
+> 包从源码直跑也可以（DSH 的 loader 基于 Node 原生 type-stripping 执行 TS 源码），但默认入口是编译产物 `lib/index.js`——这是 npm 生态的常规契约，源码安装请先 `pnpm build`。
 
 安装后在 DSH 会话里：
 
@@ -72,7 +80,7 @@ dsh plugin --profile <你的profile> add ./packages/forge
 **`darwin_report` 输出示例**（取自 `packages/lab` 的模拟负载，可直接复现）：
 
 ```text
-## dsh-sentinel 会话体检（开放工单 9）
+## dsh-darwin-sentinel 会话体检（开放工单 9）
 
 ### [70] 工具错误簇 · 工具错误簇：bash:ETIMEDOUT 累计失败 8 次
 - id: `tkt-6b34f2a1c9d80e77` · 累计 8 次 · 浪费 ~0 tokens · 最近 seen 2026-09-01T15:00:00.000Z
@@ -115,12 +123,14 @@ DeepSeek Harness 处于开发预览期，官方保证会有破坏性变更。本
 
 ## English
 
-Self-evolution for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) via **two plugins + one protocol**: `dsh-sentinel` (mechanically mines session logs — retry loops, tool-error clusters, interrupted turns, token waste — into structured ProblemTickets), `dsh-forge` (consumes tickets, synthesizes tiered candidates — config/skill first, zero code execution by default — promotes into project `.dsh/skills` with hot reload, snapshots for deterministic rollback), and `@dsh-darwin/protocol` (the shared Zod contract: ProblemTicket / CandidatePlugin / EvalReceipt / LineageNode, plus hidden-grader isolation for regression tasks).
+Self-evolution for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) via **two plugins + one protocol**: `dsh-darwin-sentinel` (mechanically mines session logs — retry loops, tool-error clusters, interrupted turns, token waste — into structured ProblemTickets), `dsh-darwin-forge` (consumes tickets, synthesizes tiered candidates — config/skill first, zero code execution by default — promotes into project `.dsh/skills` with hot reload, snapshots for deterministic rollback), and `@dsh-darwin/protocol` (the shared Zod contract: ProblemTicket / CandidatePlugin / EvalReceipt / LineageNode, plus hidden-grader isolation for regression tasks).
 
 Design stance: evolution requires **selection pressure**, not just mutation — the eval gate (`src/gate.ts`) enforces a pass-rate floor, champion regression, cost fitness, and hold-out canary veto; `redactForAgent` keeps graders out of agent context to prevent reward hacking.
 
 ```bash
-pnpm install && pnpm typecheck && pnpm test
+pnpm install && pnpm typecheck && pnpm build && pnpm test
 ```
 
-MIT. Verified against DSH `0.1.1-rc.2` – `0.1.2-alpha.x` (docs-level; runtime verification pending on a live install).
+Install: `dsh plugin --profile <name> add dsh-darwin-sentinel` / `add dsh-darwin-forge` (npm), or add `./packages/<pkg>` after `pnpm build` (source).
+
+MIT. Runtime-verified against DSH `0.1.1-rc.2` on a live install (Windows, 2026-09-02); smoke-checked against `0.1.2-alpha.5`.
